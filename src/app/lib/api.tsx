@@ -1,5 +1,8 @@
 // apiClient.ts
-const config = { apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api", nextAuthUrl: process.env.NEXTAUTH_URL ?? "http://127.0.0.1:8000", };
+const config = { 
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://complaint.runasp.net/api", 
+  nextAuthUrl: process.env.NEXTAUTH_URL ?? "http://127.0.0.1:8000", 
+};
  
 
  
@@ -78,10 +81,31 @@ class ApiClient {
 
   // --- LOGIN NOW WORKS ---
   login(body: { email: string; password: string }) {
-    return this.request<ApiResult<{ user: any }>>("/login", {
+    return this.request<{
+      token: string;
+      userId: string;
+      email: string;
+      success: boolean;
+      message: string;
+    }>("/Auth/login", {
       method: "POST",
       body,
-      withCredentials: false, // <--- FIX FOR YOU
+      withCredentials: false,
+    });
+  }
+
+  // Validate token by making a login request
+  validateToken(body: { email: string; password: string }) {
+    return this.request<{
+      token: string;
+      userId: string;
+      email: string;
+      success: boolean;
+      message: string;
+    }>("/Auth/login", {
+      method: "POST",
+      body,
+      withCredentials: false,
     });
   }
    // --- LOGIN NOW WORKS ---

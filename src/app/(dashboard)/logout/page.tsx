@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { removeToken, removeCredentials } from "@/lib/auth";
 
 const LogoutPage = () => {
   const router = useRouter();
   const [countdown, setCountdown] = useState(4);
   useEffect(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    removeToken();
+    removeCredentials();
 
     const timer = setInterval(() => {
       setCountdown((prev) => {
