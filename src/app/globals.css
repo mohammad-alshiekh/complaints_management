@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* React Calendar Overrides */
+.react-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: "Inter", sans-serif !important;
+}
+
+.react-calendar__navigation__label__labelText {
+  font-weight: 600;
+}
+
+.react-calendar__tile--active {
+  color: black !important;
+  background-color: #c3ebfa !important;
+}
+
+/* React Big Calendar Overrides */
+.rbc-label {
+  font-weight: 400 !important;
+  font-size: 12px !important;
+  color: hwb(0 43% 57%) !important;
+}
+
+.rbc-btn-group:last-child {
+  font-size: 12px !important;
+}
+
+.rbc-time-content {
+  border: none !important;
+}
+
+.rbc-time-gutter .rbc-time-column {
+  font-size: 10px !important;
+}
+
+.rbc-time-gutter .rbc-time-column .rbc-timeslot-group {
+  padding: 0 20px !important;
+}
+
+.rbc-timeslot-group {
+  background-color: #f7fdff !important;
+}
+
+.rbc-btn-group:first-child {
+  display: none !important;
+}
+
+.rbc-toolbar-label {
+  text-align: right !important;
+  padding: 0 20px !important;
+}
+
+.rbc-btn-group:last-child button {
+  border: none !important;
+  background-color: #f1f0ff !important;
+  margin-left: 2px !important;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: #dbdafe !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important; /* Subtle purple glow instead of red */
+}
+
+.rbc-time-header {
+  display: none !important;
+}
+
+.rbc-event {
+  font-size: 12px !important;
+  font: 1em sans-serif;
+  border: none !important;
+  padding-top: 4px !important;
+}
+
+.rbc-event-container {
+  border: none !important;
+}
+
+/* Event Color Overrides (by nth-child; consider data attributes for more dynamic theming) */
+.rbc-event:nth-child(1) { background-color: #95bdf8 !important; }
+.rbc-event:nth-child(2) { background-color: #a3f3af !important; }
+.rbc-event:nth-child(3) { background-color: #f9bbff !important; }
+.rbc-event:nth-child(4) { background-color: #d8ff9d !important; }
+.rbc-event:nth-child(5) { background-color: #a3fed2 !important; }
+.rbc-event:nth-child(6) { background-color: #e9adea !important; }
