@@ -6,7 +6,7 @@ import CustomButton from "@/components/CustomButton";
 import SectionTitle from "@/components/SectionTitle";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import toast from "react-hot-toast";
 import apiClient from "@/app/lib/api";
 import { setToken, setUser, setCredentials } from "@/lib/auth";
@@ -16,7 +16,7 @@ const isValidEmailAddressFormat = (input: string) => {
   return regex.test(input);
 };
 
-const LoginPage = () => {
+const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
@@ -161,6 +161,25 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const LoginPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="bg-white">
+        <SectionTitle title="Login" path="Home | Login" />
+        <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white">
+          <div className="sm:mx-auto sm:w-full sm:max-w-md">
+            <h2 className="mt-6 text-center text-2xl font-normal leading-9 tracking-tight text-gray-900">
+              Sign in to your account
+            </h2>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 };
 
