@@ -199,6 +199,7 @@ const statusBadgeStyles: Record<ComplaintStatus, string> = {
   "In Progress": "bg-blue-50 text-blue-700 border-blue-100",
   Escalated: "bg-rose-50 text-rose-700 border-rose-100",
   Resolved: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  Completed: "bg-green-50 text-green-700 border-green-100",
   Canceled: "bg-gray-50 text-gray-600 border-gray-200",
 };
 
@@ -257,7 +258,7 @@ interface ComplaintPageProps {
 export default function ComplaintDetailsPage({ params }: ComplaintPageProps) {
   const complaint = getComplaintById(params.id);
   const [status, setStatus] = useState<ComplaintStatus>(
-    complaint?.status ?? "Pending"
+    complaint?.status ?? ComplaintStatus.Pending
   );
   const [assignee, setAssignee] = useState(assignees[0]);
   const [note, setNote] = useState("");
