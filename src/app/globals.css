@@ -6,7 +6,7 @@
 .react-calendar {
   width: 100% !important;
   border: none !important;
-  font-family: "Inter", sans-serif !important;
+  font-family:  sans-serif !important;
 }
 
 .react-calendar__navigation__label__labelText {

@@ -1,10 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic"; // ⬅ Fixes useSearchParams prerender error
+export const dynamic = "force-dynamic";  
 
 import CustomButton from "@/components/CustomButton";
-import SectionTitle from "@/components/SectionTitle";
-
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState, Suspense } from "react";
 import toast from "react-hot-toast";
@@ -20,6 +18,7 @@ const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const expired = searchParams.get("expired");
@@ -77,87 +76,101 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="bg-white">
-      <SectionTitle title="Login" path="Home | Login" />
-      <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="mt-6 text-center text-2xl font-normal leading-9 tracking-tight text-gray-900">
-            Sign in to your account
-          </h2>
+    <div className="min-h-screen flex bg-white">
+      {/* Left side: Blue background with title and illustrations */}
+      <div className="flex-1 bg-blue-600 flex flex-col justify-center items-center p-8 relative overflow-hidden">
+        {/* Curved white overlay for right edge effect */}
+        <div className="absolute right-0 top-0 bottom-0   bg-white rounded-l-full opacity-10"></div>
+        
+        <div className="text-center z-2 relative max-w-md">
+          {/* Logo */}
+          <div className="text-6xl font-serif text-blue-300 mb-4">SCGS</div>
+          
+          {/* Title */}
+          <h1 className="text-5xl font-bold text-white mb-2">SMART CMS</h1>
+          
+          {/* Subtitle */}
+          <p className="text-xl text-white opacity-90 mb-2">Automating Complaints Intelligently</p>
+          
+          {/* Placeholder for illustrations (gears, charts, people) - replace with actual SVGs/images if available */}
+          <img 
+            src="/ssss.png" 
+            alt="Gears, charts, and people illustrations" 
+            className="max-w-md mx-auto mb-8"
+          />
         </div>
+      </div>
 
-        <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-[480px]">
-          <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              {/* email */}
-              <div>
-                <label className="block text-sm font-medium leading-6 text-gray-900">
-                  Email address
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"
-                  />
-                </div>
-              </div>
+      {/* Right side: White form area */}
+      <div className="flex-1 flex flex-col justify-center items-center p-8">
+        <div className="w-full max-w-md">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium leading-6 text-gray-900 mb-2">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="block w-full rounded-lg border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
+                placeholder="Email"
+              />
+            </div>
 
-              {/* password */}
-              <div>
-                <label className="block text-sm font-medium leading-6 text-gray-900">
-                  Password
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"
-                  />
-                </div>
-              </div>
-
-              {/* remember */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-black"
-                  />
-                  <label className="ml-3 block text-sm text-gray-900">
-                    Remember me
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <a href="#" className="font-semibold text-black">
-                    Forgot password?
-                  </a>
-                </div>
-              </div>
-
-              <div>
-                <CustomButton
-                  buttonType="submit"
-                  text="Sign in"
-                  paddingX={3}
-                  paddingY={1.5}
-                  customWidth="full"
-                  textSize="sm"
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium leading-6 text-gray-900 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="block w-full rounded-lg border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 pr-10"
+                  placeholder="Password"
                 />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <input
+                    id="show-password"
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                    onChange={(e) => setShowPassword(e.target.checked)}
+                  />
+                  
+                </div>
               </div>
-            </form>
+            </div>
 
-            <p className="text-red-600 text-center text-[16px] my-4">
-              {error && error}
-            </p>
+            <div>
+              <CustomButton
+                buttonType="submit"
+                text="LOGIN"
+                paddingX={3}
+                paddingY={3}
+                customWidth="full"
+                textSize="base"
+               />
+            </div>
+          </form>
+
+          {/* Forgot link */}
+          <div className="text-center mt-4">
+            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">
+              Forget Username / Password?
+            </a>
           </div>
+
+          {/* Error message */}
+          <p className="text-red-600 text-center text-sm mt-4">
+            {error}
+          </p>
+
+       
         </div>
       </div>
     </div>
@@ -167,13 +180,15 @@ const LoginForm = () => {
 const LoginPage = () => {
   return (
     <Suspense fallback={
-      <div className="bg-white">
-        <SectionTitle title="Login" path="Home | Login" />
-        <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white">
-          <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <h2 className="mt-6 text-center text-2xl font-normal leading-9 tracking-tight text-gray-900">
-              Sign in to your account
-            </h2>
+      <div className="min-h-screen flex bg-white">
+        <div className="flex-1 bg-blue-600"></div>
+        <div className="flex-1 flex flex-col justify-center items-center p-8">
+          <div className="w-full max-w-md">
+            <div className="animate-pulse space-y-6">
+              <div className="h-12 bg-gray-200 rounded-lg"></div>
+              <div className="h-12 bg-gray-200 rounded-lg"></div>
+              <div className="h-12 bg-gray-200 rounded-lg"></div>
+            </div>
           </div>
         </div>
       </div>

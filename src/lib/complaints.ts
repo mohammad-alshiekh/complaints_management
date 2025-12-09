@@ -1,9 +1,4 @@
-export type ComplaintStatus =
-  | "Pending"
-  | "In Progress"
-  | "Resolved"
-  | "Escalated"
-  | "Canceled";
+ 
 
 export type ComplaintPriority = "Low" | "Medium" | "High" | "Urgent";
 
@@ -41,6 +36,14 @@ export interface Complaint {
   attachments: ComplaintAttachment[];
   timeline: ComplaintTimelineEvent[];
 }
+export enum ComplaintStatus {
+  Pending = "Pending",
+  InProgress = "In Progress",
+  Escalated = "Escalated",
+  Resolved = "Resolved",
+  Completed = "Completed",
+  Canceled = "Canceled",
+}
 
 export const complaints: Complaint[] = [
   {
@@ -53,7 +56,7 @@ export const complaints: Complaint[] = [
     guardianName: "Omar Hussain",
     email: "omar.hussain@example.com",
     phone: "+971 50 234 9981",
-    status: "In Progress",
+    status: ComplaintStatus.Pending,
     priority: "High",
     createdAt: "2025-11-12T09:15:00Z",
     updatedAt: "2025-11-17T08:10:00Z",
@@ -96,7 +99,7 @@ export const complaints: Complaint[] = [
     guardianName: "Sara Al Nuaimi",
     email: "sara.nuaimi@example.com",
     phone: "+971 56 876 2451",
-    status: "Pending",
+    status: ComplaintStatus.Pending,
     priority: "Medium",
     createdAt: "2025-11-15T06:00:00Z",
     updatedAt: "2025-11-16T06:00:00Z",
@@ -125,7 +128,7 @@ export const complaints: Complaint[] = [
     guardianName: "Farid Hassan",
     email: "farid.hassan@example.com",
     phone: "+971 50 288 1290",
-    status: "Escalated",
+    status: ComplaintStatus.Canceled,
     priority: "Urgent",
     createdAt: "2025-11-10T11:32:00Z",
     updatedAt: "2025-11-17T09:45:00Z",
@@ -169,7 +172,7 @@ export const complaints: Complaint[] = [
     guardianName: "Nadia Siddiqui",
     email: "nadia.siddiqui@example.com",
     phone: "+971 52 301 8552",
-    status: "Resolved",
+    status: ComplaintStatus.Completed,
     priority: "Low",
     createdAt: "2025-11-05T07:50:00Z",
     updatedAt: "2025-11-08T09:10:00Z",
@@ -208,7 +211,7 @@ export const complaints: Complaint[] = [
     guardianName: "Abdulrahman Saad",
     email: "abdulrahman.saad@example.com",
     phone: "+971 55 778 3421",
-    status: "Pending",
+    status: ComplaintStatus.InProgress,
     priority: "Low",
     createdAt: "2025-11-14T10:00:00Z",
     updatedAt: "2025-11-15T10:00:00Z",
@@ -227,15 +230,87 @@ export const complaints: Complaint[] = [
       },
     ],
   },
+  {
+    id: "9831",
+    title: "Request for assignment extension",
+    category: "Academics",
+    studentName: "Rami Siddiqui",
+    studentClass: "Grade 9A",
+    studentId: "ST-22401",
+    guardianName: "Nadia Siddiqui",
+    email: "nadia.siddiqui@example.com",
+    phone: "+971 52 301 8552",
+    status: ComplaintStatus.Escalated,
+    priority: "Low",
+    createdAt: "2025-11-05T07:50:00Z",
+    updatedAt: "2025-11-08T09:10:00Z",
+    dueAt: "2025-11-09T00:00:00Z",
+    summary:
+      "Student missed submission because of participation in national science fair.",
+    description:
+      "Guardian requested flexibility for two assignments. Homeroom teacher approved extension and recorded it in LMS.",
+    tags: ["LMS", "Grade 9"],
+    attachments: [],
+    timeline: [
+      {
+        timestamp: "2025-11-05T07:50:00Z",
+        actor: "Parent Portal",
+        action: "Complaint created",
+      },
+      {
+        timestamp: "2025-11-07T13:05:00Z",
+        actor: "Academic Coordinator",
+        action: "Provided extension letter",
+      },
+      {
+        timestamp: "2025-11-08T09:10:00Z",
+        actor: "System",
+        action: "Marked as resolved",
+      },
+    ],
+  },
+  {
+    id: "9831",
+    title: "Request for assignment extension",
+    category: "Academics",
+    studentName: "Rami Siddiqui",
+    studentClass: "Grade 9A",
+    studentId: "ST-22401",
+    guardianName: "Nadia Siddiqui",
+    email: "nadia.siddiqui@example.com",
+    phone: "+971 52 301 8552",
+    status: ComplaintStatus.Resolved,
+    priority: "Low",
+    createdAt: "2025-11-05T07:50:00Z",
+    updatedAt: "2025-11-08T09:10:00Z",
+    dueAt: "2025-11-09T00:00:00Z",
+    summary:
+      "Student missed submission because of participation in national science fair.",
+    description:
+      "Guardian requested flexibility for two assignments. Homeroom teacher approved extension and recorded it in LMS.",
+    tags: ["LMS", "Grade 9"],
+    attachments: [],
+    timeline: [
+      {
+        timestamp: "2025-11-05T07:50:00Z",
+        actor: "Parent Portal",
+        action: "Complaint created",
+      },
+      {
+        timestamp: "2025-11-07T13:05:00Z",
+        actor: "Academic Coordinator",
+        action: "Provided extension letter",
+      },
+      {
+        timestamp: "2025-11-08T09:10:00Z",
+        actor: "System",
+        action: "Marked as resolved",
+      },
+    ],
+  },
 ];
 
-export const complaintStatusOrder: ComplaintStatus[] = [
-  "Pending",
-  "In Progress",
-  "Escalated",
-  "Resolved",
-  "Canceled",
-];
+ 
 
 export const complaintPriorityOrder: ComplaintPriority[] = [
   "Low",
@@ -264,8 +339,8 @@ export const complaintStats = [
     meta: "Last 30 days",
   },
   {
-    label: "Escalations",
-    value: complaints.filter((c) => c.status === "Escalated").length,
+    label: "Completed",
+    value: complaints.filter((c) => c.status ===ComplaintStatus.Completed).length,
     meta: "Require leadership visibility",
   },
 ];

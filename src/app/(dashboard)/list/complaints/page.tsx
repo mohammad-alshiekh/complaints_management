@@ -4,21 +4,27 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   complaints,
-  complaintStats,
   complaintPriorityOrder,
   Complaint,
   ComplaintPriority,
   ComplaintStatus,
 } from "@/lib/complaints";
 
+// --------------------------------------------------------
+// STATUS COLORS
+// --------------------------------------------------------
 const statusPillStyles: Record<ComplaintStatus, string> = {
   Pending: "bg-yellow-50 text-yellow-700 border-yellow-100",
   "In Progress": "bg-blue-50 text-blue-700 border-blue-100",
   Escalated: "bg-rose-50 text-rose-700 border-rose-100",
   Resolved: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  Canceled: "bg-gray-50 text-gray-600 border-gray-200",
+  Completed: "bg-green-50 text-green-700 border-green-100",
+  Canceled: "bg-gray-100 text-gray-600 border-gray-200",
 };
 
+// --------------------------------------------------------
+// PRIORITY DOTS
+// --------------------------------------------------------
 const priorityDotStyles: Record<ComplaintPriority, string> = {
   Low: "bg-gray-300",
   Medium: "bg-amber-400",
@@ -26,12 +32,17 @@ const priorityDotStyles: Record<ComplaintPriority, string> = {
   Urgent: "bg-rose-600",
 };
 
-const statusFilters: Array<ComplaintStatus | "All"> = [
+// --------------------------------------------------------
+// FILTER OPTIONS
+// --------------------------------------------------------
+export const statusFilters: Array<ComplaintStatus | "All"> = [
   "All",
-  "Pending",
-  "In Progress",
-  "Escalated",
-  "Resolved",
+  ComplaintStatus.Pending,
+  ComplaintStatus.InProgress,
+  ComplaintStatus.Escalated,
+  ComplaintStatus.Resolved,
+  ComplaintStatus.Completed,
+  ComplaintStatus.Canceled,
 ];
 
 const ListComplaintsPage = () => {
@@ -39,14 +50,18 @@ const ListComplaintsPage = () => {
   const [statusFilter, setStatusFilter] = useState<ComplaintStatus | "All">(
     "All"
   );
-  const [sortKey, setSortKey] = useState<"updated" | "priority">("updated");
 
+  // --------------------------------------------------------
+  // FILTER + SORT
+  // --------------------------------------------------------
   const filteredComplaints = useMemo(() => {
     const lowerSearch = search.toLowerCase();
+
     return complaints
       .filter((complaint: Complaint) => {
         const matchesStatus =
           statusFilter === "All" || complaint.status === statusFilter;
+
         const matchesSearch =
           complaint.title.toLowerCase().includes(lowerSearch) ||
           complaint.studentName.toLowerCase().includes(lowerSearch) ||
@@ -54,18 +69,13 @@ const ListComplaintsPage = () => {
 
         return matchesStatus && matchesSearch;
       })
-      .sort((a: Complaint, b: Complaint) => {
-        if (sortKey === "updated") {
-          return (
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-          );
-        }
+      .sort((a, b) => {
         return (
           complaintPriorityOrder.indexOf(b.priority) -
           complaintPriorityOrder.indexOf(a.priority)
         );
       });
-  }, [search, statusFilter, sortKey]);
+  }, [search, statusFilter]);
 
   const formatDate = (value: string) =>
     new Intl.DateTimeFormat("en-US", {
@@ -76,121 +86,88 @@ const ListComplaintsPage = () => {
     }).format(new Date(value));
 
   return (
-    <div className="min-h-full bg-[#f7fbfa] p-4 md:p-6 space-y-6">
-      <header className="space-y-2">
-        <p className="text-xs uppercase text-gray-500 tracking-wide">
-          Complaints
-        </p>
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold text-gray-900">
-              Guardian Complaints
-            </h1>
-            <p className="text-sm text-gray-500">
-              Monitor escalations, track owner updates, and act before SLA
-              breaches.
-            </p>
-          </div>
-          <button className="inline-flex items-center justify-center rounded-xl bg-gray-900 text-white text-sm font-semibold px-4 py-2 hover:bg-gray-800">
-            + New complaint
-          </button>
-        </div>
-      </header>
+    <section className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {complaintStats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
-          >
-            <p className="text-xs uppercase text-gray-400 tracking-wide">
-              {stat.label}
-            </p>
-            <p className="text-3xl font-semibold text-gray-900 mt-2">
-              {stat.value}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">{stat.meta}</p>
-          </div>
-        ))}
-      </section>
+      {/* --------------------------------------------------------
+          SEARCH + FILTER BAR
+      -------------------------------------------------------- */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div></div>
 
-      <section className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap gap-2">
-            {statusFilters.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setStatusFilter(filter)}
-                className={`px-3 py-1.5 text-sm rounded-full border transition ${
-                  statusFilter === filter
-                    ? "border-gray-900 bg-gray-900 text-white"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by student, title, or ID"
-              className="w-full md:w-64 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none"
-            />
+        <div className="flex flex-col gap-3 md:flex-row md:items-center lg:ml-auto">
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by ID, title"
+            className="w-full md:w-64 rounded-xl border border-gray-200 px-3 py-2 text-sm 
+                       focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none"
+          />
+
+          <div className="w-full md:w-44">
             <select
-              value={sortKey}
+              value={statusFilter}
               onChange={(event) =>
-                setSortKey(event.target.value as "updated" | "priority")
+                setStatusFilter(
+                  event.target.value as ComplaintStatus | "All"
+                )
               }
-              className="w-full md:w-44 rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white 
+                         focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none"
             >
-              <option value="updated">Sort by last update</option>
-              <option value="priority">Sort by priority</option>
+              {statusFilters.map((filter) => (
+                <option key={filter} value={filter}>
+                  {filter}
+                </option>
+              ))}
             </select>
           </div>
         </div>
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100">
-                {[
-                  "Complaint",
-                  "Student",
-                  "Status",
-                  "Priority",
-                  "Updated",
-                  "Actions",
-                ].map((heading) => (
-                  <th key={heading} className="py-2 pr-4 font-medium">
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredComplaints.map((complaint: Complaint) => (
-                <ComplaintRow
-                  key={complaint.id}
-                  complaint={complaint}
-                  formatDate={formatDate}
-                />
-              ))}
-            </tbody>
-          </table>
-          {filteredComplaints.length === 0 && (
-            <div className="py-16 text-center text-sm text-gray-500">
-              No complaints match your filters.
-            </div>
-          )}
-        </div>
-      </section>
-    </div>
+      {/* --------------------------------------------------------
+          TABLE
+      -------------------------------------------------------- */}
+      <div className="overflow-x-auto mt-6">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100">
+              <th className="py-2 pr-4 font-medium">ID</th>
+              <th className="py-2 pr-4 font-medium">Title</th>
+              <th className="py-2 pr-4 font-medium">Category</th>
+              <th className="py-2 pr-4 font-medium">User</th>
+              <th className="py-2 pr-4 font-medium">Created</th>
+              <th className="py-2 pr-4 font-medium">Updated</th>
+              <th className="py-2 pr-4 font-medium">Status</th>
+              <th className="py-2 pr-4 font-medium">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filteredComplaints.map((complaint: Complaint) => (
+              <ComplaintRow
+                key={complaint.id}
+                complaint={complaint}
+                formatDate={formatDate}
+              />
+            ))}
+          </tbody>
+        </table>
+
+        {filteredComplaints.length === 0 && (
+          <div className="py-16 text-center text-sm text-gray-500">
+            No complaints match your filters.
+          </div>
+        )}
+      </div>
+
+    </section>
   );
 };
 
+// --------------------------------------------------------
+// ROW COMPONENT
+// --------------------------------------------------------
 const ComplaintRow = ({
   complaint,
   formatDate,
@@ -198,26 +175,52 @@ const ComplaintRow = ({
   complaint: Complaint;
   formatDate: (value: string) => string;
 }) => {
+  const limitWords = (text: string, maxWords: number) => {
+    const words = text.split(" ");
+    return words.length > maxWords
+      ? words.slice(0, maxWords).join(" ") + "..."
+      : text;
+  };
+
   return (
     <tr className="border-b border-gray-50 last:border-0">
-      <td className="py-4 pr-4">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">#{complaint.id}</span>
-            <span className="text-xs rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">
-              {complaint.category}
-            </span>
-          </div>
-          <p className="font-semibold text-gray-900">{complaint.title}</p>
-          <p className="text-sm text-gray-500 line-clamp-1">{complaint.summary}</p>
-        </div>
+
+      {/* ID */}
+      <td className="py-4 pr-4 font-semibold text-gray-800">#{complaint.id}</td>
+
+      {/* Title */}
+      <td className="py-4 pr-4 text-gray-900">
+        {limitWords(complaint.title, 10)}
       </td>
+
+      {/* Category */}
+      <td className="py-4 pr-4">
+        <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs">
+          {complaint.category}
+        </span>
+      </td>
+
+      {/* USER ID + NAME */}
       <td className="py-4 pr-4">
         <div className="flex flex-col text-sm">
-          <span className="font-medium text-gray-900">{complaint.studentName}</span>
-          <span className="text-gray-500">{complaint.studentClass}</span>
+          <span className="font-semibold text-gray-900">
+            {complaint.studentId}
+          </span>
+          <span className="text-xs text-gray-500">{complaint.studentName}</span>
         </div>
       </td>
+
+      {/* Created */}
+      <td className="py-4 pr-4 text-sm text-gray-500">
+        {formatDate(complaint.createdAt)}
+      </td>
+
+      {/* Updated */}
+      <td className="py-4 pr-4 text-sm text-gray-500">
+        {formatDate(complaint.updatedAt)}
+      </td>
+
+      {/* Status */}
       <td className="py-4 pr-4">
         <span
           className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${statusPillStyles[complaint.status]}`}
@@ -226,13 +229,8 @@ const ComplaintRow = ({
           {complaint.status}
         </span>
       </td>
-      <td className="py-4 pr-4">
-        <span className="inline-flex items-center gap-2 rounded-full bg-gray-50 px-3 py-1 text-xs font-medium text-gray-700">
-          <span className={`h-2 w-2 rounded-full ${priorityDotStyles[complaint.priority]}`} />
-          {complaint.priority}
-        </span>
-      </td>
-      <td className="py-4 pr-4 text-sm text-gray-500">{formatDate(complaint.updatedAt)}</td>
+
+      {/* Action */}
       <td className="py-4 pr-4">
         <Link
           href={`/list/complaints/${complaint.id}`}

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Inter } from "next/font/google";
-import Menu from "@/components/Menu";
+ import Menu from "@/components/Menu";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/fotter";
+import { MdLanguage } from "react-icons/md";
+import { FiBell } from "react-icons/fi";
 
-const inter = Inter({ subsets: ["latin"] });
-
+ 
 export const metadata: Metadata = {
   title: "  Management Dashboard",
   description: " Management System",
@@ -18,15 +18,35 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen flex overflow-hidden">
-      {/* Left Sidebar */}
-      <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <Menu />
-      </div>
+    <div className="h-screen flex  ">
+        
       {/* Main Content Area */}
-      <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-[#f7fbfa] flex flex-col">
-        <div className="h-[60px] flex-shrink-0">
-          <Navbar />
+      <div className="w-full   flex flex-col">
+        <div className="h-[128px] flex-shrink-0">
+          {/* TOP BAR */}
+      <div className="bg-[#0C3DA7] text-white px-8 py-4 flex items-center justify-between">
+        {/* LEFT */}
+        <div className="flex items-center gap-3 text-lg font-bold">
+          <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">📘</div>
+          SMART CMS
+        </div>
+
+        {/* CENTER */}
+        <div className="text-sm opacity-80">
+          APPLICATION / <span className="font-semibold">DASHBOARD</span>
+        </div>
+
+        {/* RIGHT */}
+        <div className="flex items-center gap-5 text-xl">
+          <MdLanguage />
+          <FiBell />
+          <div className="w-8 h-8 bg-white rounded-full"></div>
+        </div>
+      </div>
+
+      {/* MENU BAR */}
+      <Menu />
+
         </div>
         <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {children}

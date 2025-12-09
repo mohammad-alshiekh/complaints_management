@@ -1,11 +1,11 @@
 export let role = "admin";
-export const menuItems = [
+ export const menuItems = [
   {
     title: "MENU",
     items: [
       {
         icon: "/home.png",
-        label: "Home",
+        label: "Dashboard",
         href: "/admin",
         visible: ["admin"],
       },
@@ -15,17 +15,13 @@ export const menuItems = [
         href: "/list/complaints",
         visible: ["admin", "emplyee"],
       },
+  
       {
         icon: "/announcement.png",
-        label: "Announcements",
-        href: "/list/announcements",
-        visible: ["admin", "emplyee"],
+        label: "Users",
+        href: "/list/users",
+        visible: ["admin"],
       },
-    ],
-  },
-  {
-    title: "OTHER",
-    items: [
       {
         icon: "/profile.png",
         label: "Profile",
@@ -38,14 +34,9 @@ export const menuItems = [
         href: "/settings",
         visible: ["admin", "emplyee"],
       },
-      {
-        icon: "/logout.png",
-        label: "Logout",
-        href: "/logout",
-        visible: ["admin", "emplyee"],
-      },
+       
     ],
-  },
+  } 
 ];
 export const teachersData = [
   {

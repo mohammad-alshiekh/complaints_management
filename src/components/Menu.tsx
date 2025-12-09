@@ -1,47 +1,39 @@
+"use client";
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { menuItems, role } from "@/lib/data";
 
 const Menu = () => {
+  const pathname = usePathname();
+
   return (
-    <div className="flex flex-col">
-      <div className="flex item-center gap-2 lg:justify-start justify-center p-2">
-        <Image alt="logo" src="/logo.png" width={32} height={32} className="" />
-        <span className="hidden lg:block text-gray-400  text-md ">
-          {"Dashboard"}
-        </span>
-      </div>
-      <div className=" text-xs px-3">
-        {menuItems.map((i) => (
-          <div key={i.title} className="gap-2 flex flex-col">
-            <span className="hidden lg:block text-gray-400 font-light my-2">
-              {i.title}
-            </span>
-            {i.items.map(
-              (item) =>
-                item.visible.includes(role) && (
-                  <Link
-                    href={item.href}
-                    key={item.label}
-                    className="flex item-center gap-3 lg:justify-start justify-center py-2 text-gray-500 md:px-2 rounded-md hover:bg-cyanlightx"
-                  >
-                    <Image
-                      src={item.icon}
-                      alt={item.label}
-                      width={20}
-                      height={20}
-                      className=""
-                    />
-                    <span className="hidden lg:block  text-sm">
-                      {item.label}
-                    </span>
-                  </Link>
-                )
-            )}
-          </div>
-        ))}
-      </div>
+    <div className="w-full bg-[#0C3DA7] text-white px-4 p-3 flex gap-6 overflow-x-auto no-scrollbar">
+      {menuItems.flatMap((section) =>
+        section.items
+          .filter((item) => item.visible.includes(role))
+          .map((item) => {
+            const active = pathname === item.href;
+
+            return (
+              <Link
+                href={item.href}
+                key={item.label}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md whitespace-nowrap cursor-pointer transition
+                  ${active ? "bg-white text-[#0C3DA7] font-semibold" : "text-white hover:bg-blue-700"}`}
+              >
+                <Image
+                  src={item.icon}
+                  alt={item.label}
+                  width={20}
+                  height={20}
+                />
+                <span className="text-sm">{item.label}</span>
+              </Link>
+            );
+          })
+      )}
     </div>
   );
 };

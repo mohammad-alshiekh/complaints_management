@@ -1,13 +1,11 @@
-// apiClient.ts
-const config = { 
+ const config = { 
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://complaint.runasp.net/api", 
   nextAuthUrl: process.env.NEXTAUTH_URL ?? "http://127.0.0.1:8000", 
 };
  
 
  
-// apiClient.ts
- 
+  
 type JsonBody = Record<string, unknown>;
 type ApiResult<T> = { data: T; message?: string };
 
@@ -51,9 +49,8 @@ class ApiClient {
       headers: finalHeaders,
       body: isFormData ? body : body ? JSON.stringify(body) : undefined,
 
-      // ❌ Removed default credentials
-      // ✔ Now it's optional
-      credentials: withCredentials ? "include" : "omit",
+      
+        credentials: withCredentials ? "include" : "omit",
 
       ...rest,
     });
@@ -79,8 +76,7 @@ class ApiClient {
     return payload as T;
   }
 
-  // --- LOGIN NOW WORKS ---
-  login(body: { email: string; password: string }) {
+   login(body: { email: string; password: string }) {
     return this.request<{
       token: string;
       userId: string;
