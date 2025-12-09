@@ -25,9 +25,19 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 };
 
 class ApiClient {
-  constructor(private readonly baseUrl = config.apiBaseUrl) {}
+  constructor(private readonly baseUrl = config.apiBaseUrl) {
+    // Log API base URL in development for debugging
+    if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+      console.log("API Base URL:", this.baseUrl);
+    }
+  }
 
   private buildUrl(endpoint: string) {
+    // If endpoint starts with /api/, use relative URL (same origin)
+    // This allows using Next.js API routes as proxy to bypass CORS
+    if (endpoint.startsWith("/api/")) {
+      return endpoint;
+    }
     return `${this.baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
   }
 
@@ -44,16 +54,65 @@ class ApiClient {
       finalHeaders.set("Content-Type", "application/json");
     }
 
-    const response = await fetch(url, {
-      method: options.method ?? "GET",
-      headers: finalHeaders,
-      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: options.method ?? "GET",
+        headers: finalHeaders,
+        body: isFormData ? body : body ? JSON.stringify(body) : undefined,
         credentials: withCredentials ? "include" : "omit",
-
-      ...rest,
-    });
+        signal: controller.signal,
+        ...rest,
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      
+      // Handle network errors (CORS, connection refused, timeout, etc.)
+      const errorMessage = fetchError.message || "Network error";
+      const errorName = fetchError.name || "";
+      
+      // Check for specific error types
+      if (errorName === "AbortError" || errorMessage.includes("timeout")) {
+        throw new ApiError(
+          "Request timed out. The server is taking too long to respond. Please try again.",
+          0,
+          { originalError: fetchError, url }
+        );
+      }
+      
+      if (
+        errorMessage.includes("Failed to fetch") || 
+        errorMessage.includes("NetworkError") ||
+        errorMessage.includes("Network request failed") ||
+        errorMessage.includes("ERR_INTERNET_DISCONNECTED") ||
+        errorMessage.includes("ERR_CONNECTION_REFUSED")
+      ) {
+        // Log the actual URL for debugging
+        console.error("API Request Failed:", {
+          url,
+          endpoint,
+          baseUrl: this.baseUrl,
+          error: fetchError.message,
+        });
+        
+        throw new ApiError(
+          `Unable to connect to the server at ${this.baseUrl}. This could be due to:\n- CORS policy restrictions\n- Server is down or unreachable\n- Network connectivity issues\n\nPlease check your internet connection or contact support.`,
+          0,
+          { originalError: fetchError, url, baseUrl: this.baseUrl }
+        );
+      }
+      
+      throw new ApiError(
+        `Network request failed: ${errorMessage}`,
+        0,
+        { originalError: fetchError, url }
+      );
+    }
 
     const contentType = response.headers.get("content-type") ?? "";
     const payload =
@@ -77,13 +136,14 @@ class ApiClient {
   }
 
    login(body: { email: string; password: string }) {
+    // Use Next.js API route proxy to bypass CORS
     return this.request<{
       token: string;
       userId: string;
       email: string;
       success: boolean;
       message: string;
-    }>("/Auth/login", {
+    }>("/api/auth/login", {
       method: "POST",
       body,
       withCredentials: false,
@@ -92,13 +152,14 @@ class ApiClient {
 
   // Validate token by making a login request
   validateToken(body: { email: string; password: string }) {
+    // Use Next.js API route proxy to bypass CORS
     return this.request<{
       token: string;
       userId: string;
       email: string;
       success: boolean;
       message: string;
-    }>("/Auth/login", {
+    }>("/api/auth/login", {
       method: "POST",
       body,
       withCredentials: false,
