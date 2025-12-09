@@ -35,7 +35,7 @@ const priorityDotStyles: Record<ComplaintPriority, string> = {
 // --------------------------------------------------------
 // FILTER OPTIONS
 // --------------------------------------------------------
-export const statusFilters: Array<ComplaintStatus | "All"> = [
+  const statusFilters: Array<ComplaintStatus | "All"> = [
   "All",
   ComplaintStatus.Pending,
   ComplaintStatus.InProgress,
