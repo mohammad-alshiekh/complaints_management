@@ -173,6 +173,101 @@ class ApiClient {
       withCredentials: false,  
     });
   }
+
+  // Helper method to add authorization header
+  private getAuthHeaders(token: string | null): HeadersInit {
+    const headers: HeadersInit = {
+      "accept": "text/plain",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  }
+
+  // Admin User Methods - Using Next.js API routes to bypass CORS
+  async activateUser(userId: string, token: string | null) {
+    return this.request<boolean>(`/api/admin/users/${userId}/activate`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async deactivateUser(userId: string, token: string | null) {
+    return this.request<boolean>(`/api/admin/users/${userId}/deactivate`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async createAgencyUser(body: {
+    fullName: string;
+    email: string;
+    password: string;
+    governmentEntityId: string;
+  }, token: string | null) {
+    return this.request<{ id: string; fullName: string; email: string; governmentEntityId: string }>(
+      "/api/admin/agency-users/create",
+      {
+        method: "POST",
+        headers: this.getAuthHeaders(token),
+        body,
+      }
+    );
+  }
+
+  async getAgencyUsers(governmentEntityId: string, token: string | null) {
+    return this.request<Array<{
+      id: string;
+      fullName: string;
+      email: string;
+      governmentEntityId: string;
+    }>>(`/api/admin/agency-users?governmentEntityId=${governmentEntityId}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  // Agency Methods - Using Next.js API routes to bypass CORS
+  async getAgencies(token: string | null) {
+    return this.request<Array<{
+      id: string;
+      name: string;
+    }>>("/api/admin/agencies", {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async createAgency(body: { name: string }, token: string | null) {
+    return this.request<{ id: string; name: string }>("/api/admin/agencies", {
+      method: "POST",
+      headers: this.getAuthHeaders(token),
+      body,
+    });
+  }
+
+  async getAgency(agencyId: string, token: string | null) {
+    return this.request<{ id: string; name: string }>(`/api/admin/agencies/${agencyId}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async updateAgency(agencyId: string, body: { name: string }, token: string | null) {
+    return this.request<{ id: string; name: string }>(`/api/admin/agencies/${agencyId}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(token),
+      body,
+    });
+  }
+
+  async deleteAgency(agencyId: string, token: string | null) {
+    return this.request<boolean>(`/api/admin/agencies/${agencyId}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(token),
+    });
+  }
 }
 
  

@@ -25,6 +25,7 @@
 //   );
 // }
 import "./globals.css";
+import ToasterProvider from "@/components/ToasterProvider";
  
  
 export const metadata = {
@@ -35,7 +36,10 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={" bg-[#E6ECF5]"}>{children}</body>
+      <body className={" bg-[#E6ECF5]"}>
+        {children}
+        <ToasterProvider />
+      </body>
     </html>
   );
 }
