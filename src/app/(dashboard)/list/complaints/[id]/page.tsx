@@ -195,12 +195,10 @@ import {
 import HistoryTimeline from "@/components/history-timeline";
 
 const statusBadgeStyles: Record<ComplaintStatus, string> = {
-  Pending: "bg-yellow-50 text-yellow-700 border-yellow-100",
-  "In Progress": "bg-blue-50 text-blue-700 border-blue-100",
-  Escalated: "bg-rose-50 text-rose-700 border-rose-100",
-  Resolved: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  Completed: "bg-green-50 text-green-700 border-green-100",
-  Canceled: "bg-gray-50 text-gray-600 border-gray-200",
+  [ComplaintStatus.Pending]: "bg-yellow-50 text-yellow-700 border-yellow-100",
+  [ComplaintStatus.InProgress]: "bg-blue-50 text-blue-700 border-blue-100",
+  [ComplaintStatus.Completed]: "bg-green-50 text-green-700 border-green-100",
+  [ComplaintStatus.Rejected]: "bg-rose-50 text-rose-700 border-rose-100",
 };
 
 const priorityBorderStyles: Record<ComplaintPriority, string> = {
