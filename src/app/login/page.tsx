@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState, Suspense } from "react";
 import toast from "react-hot-toast";
 import apiClient from "@/app/lib/api";
-import { setToken, setUser, setCredentials } from "@/lib/auth";
+import { setToken, setUser, setCredentials, setUserRole } from "@/lib/auth";
 
 const isValidEmailAddressFormat = (input: string) => {
   const regex = /^\S+@\S+\.\S+$/;
@@ -57,19 +57,31 @@ const LoginForm = () => {
       });
       
       if (response.success && response.token) {
-        // Store token and user info
-        setToken(response.token);
-        setUser({
+
+         if (response.userRole !== 0 && response.userRole !== 1) {
+          toast.error("You are not authorized to access this system");
+          setIsLoading(false);
+          return;
+        }
+      
+         setToken(response.token);
+      
+         setUser({
           userId: response.userId,
           email: response.email,
         });
-        // Store credentials for token validation
-        setCredentials(email.value, password.value);
-        
-        setError("");
+      
+         setUserRole(response.userRole);
+      
+         setCredentials(email.value, password.value);
+      
         toast.success("Successful login");
-        router.push("/");
-      } else {
+        
+        // Redirect to the redirect param if exists, otherwise go to dashboard
+        const redirect = searchParams.get("redirect");
+        router.push(redirect || "/dashboard");
+      }
+      else {
         setError(response.message || "Login failed");
         toast.error(response.message || "Login failed");
         setIsLoading(false);

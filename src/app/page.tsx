@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getToken, getCredentials, setToken, setUser, removeToken, removeCredentials } from "@/lib/auth";
 import apiClient from "@/app/lib/api";
 
 const Homepage = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -37,7 +37,8 @@ const Homepage = () => {
               email: response.email,
             });
             // Redirect to dashboard
-            router.push("/admin");
+            const redirect = searchParams.get("redirect");
+            router.push(redirect || "/dashboard");
           } else {
             // Login failed, clear token and redirect to login
             removeToken();
@@ -55,22 +56,16 @@ const Homepage = () => {
         removeToken();
         router.push("/login");
       }
-      
-      setIsLoading(false);
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, searchParams]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
-
-  return <div className=""></div>;
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-gray-500">Loading...</div>
+    </div>
+  );
 };
 
 export default Homepage;

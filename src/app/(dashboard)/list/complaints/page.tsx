@@ -1,55 +1,110 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   complaints,
   complaintPriorityOrder,
   Complaint,
   ComplaintPriority,
   ComplaintStatus,
+  ComplaintApiResponse,
 } from "@/lib/complaints";
+import apiClient from "@/app/lib/api";
+import { getToken } from "@/lib/auth";
 
-// --------------------------------------------------------
 // STATUS COLORS
 // --------------------------------------------------------
 const statusPillStyles: Record<ComplaintStatus, string> = {
   Pending: "bg-yellow-50 text-yellow-700 border-yellow-100",
   "In Progress": "bg-blue-50 text-blue-700 border-blue-100",
-  Escalated: "bg-rose-50 text-rose-700 border-rose-100",
-  Resolved: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  Completed: "bg-green-50 text-green-700 border-green-100",
-  Canceled: "bg-gray-100 text-gray-600 border-gray-200",
+   Completed: "bg-green-50 text-green-700 border-green-100",
+   Rejected: "bg-rose-50 text-rose-700 border-rose-100",
+
 };
 
-// --------------------------------------------------------
-// PRIORITY DOTS
-// --------------------------------------------------------
-const priorityDotStyles: Record<ComplaintPriority, string> = {
-  Low: "bg-gray-300",
-  Medium: "bg-amber-400",
-  High: "bg-orange-500",
-  Urgent: "bg-rose-600",
-};
-
-// --------------------------------------------------------
-// FILTER OPTIONS
-// --------------------------------------------------------
-  const statusFilters: Array<ComplaintStatus | "All"> = [
+ 
+const statusFilters: Array<ComplaintStatus | "All"> = [
   "All",
   ComplaintStatus.Pending,
   ComplaintStatus.InProgress,
-  ComplaintStatus.Escalated,
-  ComplaintStatus.Resolved,
-  ComplaintStatus.Completed,
-  ComplaintStatus.Canceled,
+   ComplaintStatus.Completed,
+  ComplaintStatus.Rejected,
 ];
+
+const statusFromNumber = (value: number): ComplaintStatus => {
+  switch (value) {
+    case 0:
+      return ComplaintStatus.Pending;
+    case 1:
+      return ComplaintStatus.InProgress;
+    case 2:
+      return ComplaintStatus.Completed;
+    case 3:
+      return ComplaintStatus.Rejected;
+    default:
+      return ComplaintStatus.Pending;
+  }
+};
+
+const priorityFromSeverity = (value: number): ComplaintPriority => {
+  if (value >= 3) return "Urgent";
+  if (value === 2) return "High";
+  if (value === 1) return "Medium";
+  return "Low";
+};
+
+const mapComplaintFromApi = (apiComplaint: ComplaintApiResponse): Complaint => ({
+  id: apiComplaint.id,
+  title: apiComplaint.title,
+  category: apiComplaint.governmentEntityName ?? "General",
+  studentName: apiComplaint.citizenName ?? "Unknown",
+  studentClass: "",
+  studentId: apiComplaint.citizenPhoneNumber ?? "N/A",
+  guardianName: apiComplaint.citizenName ?? "Unknown",
+  email: apiComplaint.citizenEmail ?? "",
+  phone: apiComplaint.citizenPhoneNumber ?? "",
+  status: statusFromNumber(apiComplaint.status),
+  priority: priorityFromSeverity(apiComplaint.severity),
+  severity: apiComplaint.severity,
+  complaintType: apiComplaint.complaintType,
+  createdAt: apiComplaint.createdAt,
+  updatedAt: apiComplaint.createdAt,
+  dueAt: apiComplaint.createdAt,
+  summary: apiComplaint.title,
+  description: apiComplaint.title,
+  tags: [],
+  attachments: [],
+  timeline: [],
+});
 
 const ListComplaintsPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ComplaintStatus | "All">(
     "All"
   );
+  const [complaintData, setComplaintData] = useState<Complaint[]>(complaints);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const token = getToken();
+        const apiComplaints = await apiClient.getComplaints(token);
+        setComplaintData(apiComplaints.map(mapComplaintFromApi));
+        setError(null);
+      } catch (apiError: any) {
+        console.error("Failed to load complaints", apiError);
+        setError(apiError?.message ?? "Unable to load complaints");
+        setComplaintData(complaints);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchComplaints();
+  }, []);
 
   // --------------------------------------------------------
   // FILTER + SORT
@@ -57,7 +112,7 @@ const ListComplaintsPage = () => {
   const filteredComplaints = useMemo(() => {
     const lowerSearch = search.toLowerCase();
 
-    return complaints
+    return complaintData
       .filter((complaint: Complaint) => {
         const matchesStatus =
           statusFilter === "All" || complaint.status === statusFilter;
@@ -75,7 +130,7 @@ const ListComplaintsPage = () => {
           complaintPriorityOrder.indexOf(a.priority)
         );
       });
-  }, [search, statusFilter]);
+  }, [search, statusFilter, complaintData]);
 
   const formatDate = (value: string) =>
     new Intl.DateTimeFormat("en-US", {
@@ -125,6 +180,12 @@ const ListComplaintsPage = () => {
         </div>
       </div>
 
+      {error && (
+        <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          {error}
+        </div>
+      )}
+
       {/* --------------------------------------------------------
           TABLE
       -------------------------------------------------------- */}
@@ -136,6 +197,8 @@ const ListComplaintsPage = () => {
               <th className="py-2 pr-4 font-medium">Title</th>
               <th className="py-2 pr-4 font-medium">Category</th>
               <th className="py-2 pr-4 font-medium">User</th>
+              <th className="py-2 pr-4 font-medium">Type</th>
+              <th className="py-2 pr-4 font-medium">Severity</th>
               <th className="py-2 pr-4 font-medium">Created</th>
               <th className="py-2 pr-4 font-medium">Updated</th>
               <th className="py-2 pr-4 font-medium">Status</th>
@@ -144,17 +207,29 @@ const ListComplaintsPage = () => {
           </thead>
 
           <tbody>
-            {filteredComplaints.map((complaint: Complaint) => (
-              <ComplaintRow
-                key={complaint.id}
-                complaint={complaint}
-                formatDate={formatDate}
-              />
-            ))}
+            {isLoading && (
+              <tr>
+                <td
+                  colSpan={8}
+                  className="py-6 text-center text-sm text-gray-500"
+                >
+                  Loading complaints...
+                </td>
+              </tr>
+            )}
+
+            {!isLoading &&
+              filteredComplaints.map((complaint: Complaint) => (
+                <ComplaintRow
+                  key={complaint.id}
+                  complaint={complaint}
+                  formatDate={formatDate}
+                />
+              ))}
           </tbody>
         </table>
 
-        {filteredComplaints.length === 0 && (
+        {!isLoading && filteredComplaints.length === 0 && (
           <div className="py-16 text-center text-sm text-gray-500">
             No complaints match your filters.
           </div>
@@ -180,6 +255,23 @@ const ComplaintRow = ({
     return words.length > maxWords
       ? words.slice(0, maxWords).join(" ") + "..."
       : text;
+  };
+
+  const formatType = (type?: any) => {
+    if (type === undefined || type === null) return "N/A";
+    const map: Record<number, string> = {
+      0: "ServiceQuality",
+      1: "Corruption",
+      2: "Delay",
+      3: "Misconduct",
+      99: "Other",
+    };
+    return map[type] ?? "Other";
+  };
+
+  const formatSeverity = (severity?: number) => {
+    if (severity === undefined || severity === null) return "N/A";
+    return severity.toString();
   };
 
   return (
@@ -208,6 +300,16 @@ const ComplaintRow = ({
           </span>
           <span className="text-xs text-gray-500">{complaint.studentName}</span>
         </div>
+      </td>
+
+      {/* Type */}
+      <td className="py-4 pr-4 text-sm text-gray-600">
+        {formatType(complaint.complaintType)}
+      </td>
+
+      {/* Severity */}
+      <td className="py-4 pr-4 text-sm text-gray-600">
+        {formatSeverity(complaint.severity)}
       </td>
 
       {/* Created */}

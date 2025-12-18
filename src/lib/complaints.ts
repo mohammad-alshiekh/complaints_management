@@ -15,6 +15,30 @@ export interface ComplaintTimelineEvent {
   note?: string;
 }
 
+export enum ComplaintType {
+  ServiceQuality = 0,
+  Corruption = 1,
+  Delay = 2,
+  Misconduct = 3,
+  Other = 99,
+}
+
+export interface ComplaintApiResponse {
+  id: string;
+  title: string;
+  status: number;
+  severity: number;
+  governmentEntityName: string;
+  citizenName: string;
+  citizenEmail: string;
+  citizenPhoneNumber: string;
+  governorate: number;
+  locationLong: number;
+  locationLat: number;
+  createdAt: string;
+  complaintType?: ComplaintType;
+}
+
 export interface Complaint {
   id: string;
   title: string;
@@ -27,6 +51,8 @@ export interface Complaint {
   phone: string;
   status: ComplaintStatus;
   priority: ComplaintPriority;
+  severity?: number;
+  complaintType?: ComplaintType;
   createdAt: string;
   updatedAt: string;
   dueAt: string;
@@ -39,12 +65,10 @@ export interface Complaint {
 export enum ComplaintStatus {
   Pending = "Pending",
   InProgress = "In Progress",
-  Escalated = "Escalated",
-  Resolved = "Resolved",
   Completed = "Completed",
-  Canceled = "Canceled",
+  Rejected = "Rejected",
 }
-
+ 
 export const complaints: Complaint[] = [
   {
     id: "9823",
@@ -128,7 +152,7 @@ export const complaints: Complaint[] = [
     guardianName: "Farid Hassan",
     email: "farid.hassan@example.com",
     phone: "+971 50 288 1290",
-    status: ComplaintStatus.Canceled,
+    status: ComplaintStatus.Rejected,
     priority: "Urgent",
     createdAt: "2025-11-10T11:32:00Z",
     updatedAt: "2025-11-17T09:45:00Z",
@@ -240,7 +264,7 @@ export const complaints: Complaint[] = [
     guardianName: "Nadia Siddiqui",
     email: "nadia.siddiqui@example.com",
     phone: "+971 52 301 8552",
-    status: ComplaintStatus.Escalated,
+    status: ComplaintStatus.Pending,
     priority: "Low",
     createdAt: "2025-11-05T07:50:00Z",
     updatedAt: "2025-11-08T09:10:00Z",
@@ -279,7 +303,7 @@ export const complaints: Complaint[] = [
     guardianName: "Nadia Siddiqui",
     email: "nadia.siddiqui@example.com",
     phone: "+971 52 301 8552",
-    status: ComplaintStatus.Resolved,
+    status: ComplaintStatus.Completed,
     priority: "Low",
     createdAt: "2025-11-05T07:50:00Z",
     updatedAt: "2025-11-08T09:10:00Z",
@@ -325,7 +349,7 @@ export const getComplaintById = (id: string) =>
 export const complaintStats = [
   {
     label: "Open complaints",
-    value: complaints.filter((c) => c.status !== "Resolved").length,
+    value: complaints.filter((c) => c.status !== "Completed").length,
     meta: "Rolling 7 days",
   },
   {

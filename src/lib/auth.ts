@@ -4,9 +4,25 @@ export interface LoginResponse {
   token: string;
   userId: string;
   email: string;
+  userRole: number; // 👈 NEW
   success: boolean;
   message: string;
 }
+export const setUserRole = (role: number): void => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("userRole", role.toString());
+};
+
+export const getUserRole = (): number | null => {
+  if (typeof window === "undefined") return null;
+  const role = localStorage.getItem("userRole");
+  return role ? Number(role) : null;
+};
+
+export const removeUserRole = (): void => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("userRole");
+};
 
 export const getToken = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -22,6 +38,8 @@ export const removeToken = (): void => {
   if (typeof window === "undefined") return;
   localStorage.removeItem("token");
   localStorage.removeItem("user");
+  localStorage.removeItem("userRole"); // 👈
+
 };
 
 export const getUser = (): { userId: string; email: string } | null => {

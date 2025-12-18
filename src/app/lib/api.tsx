@@ -1,4 +1,6 @@
- const config = { 
+import { ComplaintApiResponse } from "@/lib/complaints";
+
+const config = { 
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://complaint.runasp.net/api", 
   nextAuthUrl: process.env.NEXTAUTH_URL ?? "http://127.0.0.1:8000", 
 };
@@ -136,11 +138,11 @@ class ApiClient {
   }
 
    login(body: { email: string; password: string }) {
-    // Use Next.js API route proxy to bypass CORS
-    return this.request<{
+     return this.request<{
       token: string;
       userId: string;
       email: string;
+      userRole: number; 
       success: boolean;
       message: string;
     }>("/api/auth/login", {
@@ -265,6 +267,14 @@ class ApiClient {
   async deleteAgency(agencyId: string, token: string | null) {
     return this.request<boolean>(`/api/admin/agencies/${agencyId}`, {
       method: "DELETE",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async getComplaints(token: string | null) {
+    // Use Next.js API route proxy to avoid CORS issues
+    return this.request<ComplaintApiResponse[]>("/api/complaints", {
+      method: "GET",
       headers: this.getAuthHeaders(token),
     });
   }
