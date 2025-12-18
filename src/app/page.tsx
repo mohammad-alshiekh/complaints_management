@@ -2,12 +2,12 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getToken, getCredentials, setToken, setUser, removeToken, removeCredentials } from "@/lib/auth";
 import apiClient from "@/app/lib/api";
 
-const Homepage = () => {
+const HomepageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
@@ -84,6 +84,18 @@ const Homepage = () => {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-gray-500">Loading...</div>
     </div>
+  );
+};
+
+const Homepage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    }>
+      <HomepageContent />
+    </Suspense>
   );
 };
 
