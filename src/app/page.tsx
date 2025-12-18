@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+export const dynamic = "force-dynamic";
+
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getToken, getCredentials, setToken, setUser, removeToken, removeCredentials } from "@/lib/auth";
 import apiClient from "@/app/lib/api";
@@ -8,9 +10,21 @@ import apiClient from "@/app/lib/api";
 const Homepage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // Ensure we're on the client side
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Only run auth check on client side
+    if (!isMounted) return;
+
     const checkAuth = async () => {
+      // Check if we're on the client
+      if (typeof window === "undefined") return;
+
       const token = getToken();
       
       // If no token, redirect to login
@@ -59,7 +73,12 @@ const Homepage = () => {
     };
 
     checkAuth();
-  }, [router, searchParams]);
+  }, [router, searchParams, isMounted]);
+
+  // Don't render anything during SSR
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center">
