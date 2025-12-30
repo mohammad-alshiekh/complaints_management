@@ -1,536 +1,496 @@
-// // app/students/[id]/page.tsx
-// "use client";
-// import Image from "next/image";
-// import ComplianceCalender from "@/components/big-calandar";
-// import AnnouncementsComponent from "@/components/announcements-componenet";
-// import Link from "next/link";
-
-// const teacherData = {
-//   name: "Dean Guerrero",
-//   email: "einar@gmail.com",
-//   phone: "+1543 235 64",
-//   attendance: 90,
-//   branches: 2,
-//   lessons: 12,
-//   clients: 14,
-// };
-
-// const shortcuts = [
-//   { label: " Classes", href: "#", color: "red-100" },
-//   { label: " Students", href: "#", color: "green-100" },
-//   { label: " Lessons", href: "#", color: "yellow-100" },
-//   { label: " Exams", href: "#", color: "orange-100" },
-//   { label: " Assignments", href: "#", color: "purple-100" },
-// ];
-
-// const SingleTeacherPage = () => {
-//   return (
-//     <div className="flex-1 xl:flex-row gap-4 flex flex-col p-4">
-//       <div className="w-full lg:w-2/3">
-//         {/*TOP => Profile Section */}
-//         <div className="flex md:flex-row flex-col">
-//           {/*User Info card*/}
-//           <div className="flex-1 gap-4 bg-cyanx rounded-md py-6 px-4">
-//             <div className="w-1/3">
-//               <Image
-//                 src="/avatar.png"
-//                 alt="Teacher Avatar"
-//                 width={122}
-//                 height={122}
-//                 className="rounded-full object-over h-36 w-36"
-//               />
-//             </div>
-
-//             <div className="w-2/3">
-//               <h2 className="text-md font-semibold">{teacherData.name}</h2>
-//               <p className="text-xs text-gray-500">
-//                 Lorem ipsum dolor sit amet...
-//               </p>
-
-//               <div className="flex items-center justify-between flex-wrap text-xs fomt-medium  gap-2 ">
-//                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-//                   <Image
-//                     src="/blood.png"
-//                     alt="Teacher Avatar"
-//                     width={14}
-//                     height={14}
-//                   />
-//                   <span>A+</span>
-//                 </div>
-//                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-//                   <Image
-//                     src="/date.png"
-//                     alt="Teacher Avatar"
-//                     width={14}
-//                     height={14}
-//                   />
-//                   <span>2002/2/2</span>
-//                 </div>
-//                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-//                   <Image
-//                     src="/mail.png"
-//                     alt="Teacher Avatar"
-//                     width={14}
-//                     height={14}
-//                   />
-//                   <span>user@gamail.com</span>
-//                 </div>
-//                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-//                   <Image
-//                     src="/phone.png"
-//                     alt="Teacher Avatar"
-//                     width={14}
-//                     height={14}
-//                   />
-//                   <span>+1 231123213</span>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-
-//           <div className="flex-1 flex flex-wrap justify-between gap-4">
-//             <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[45%] 2xl:w-[48%]">
-//               <Image
-//                 src="/singleAttendance.png"
-//                 alt=""
-//                 width={22}
-//                 height={22}
-//                 className=" h-6 w-6"
-//               />
-//               <div className="flex flex-col ml-2">
-//                 <p className="text-xl font-semibold">
-//                   {teacherData.attendance}
-//                 </p>
-//                 <p className="text-xs  text-gray-400">Attendance</p>
-//               </div>
-//             </div>
-//             <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[45%] 2xl:w-[48%]">
-//               <Image
-//                 src="/singlelesson.png"
-//                 alt=""
-//                 width={22}
-//                 height={22}
-//                 className=" h-6 w-6"
-//               />
-//               <div className="flex flex-col ml-2">
-//                 <p className="text-xl font-semibold">
-//                   {teacherData.attendance}
-//                 </p>
-//                 <p className="text-xs  text-gray-400">Lesson</p>
-//               </div>
-//             </div>
-//             <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[45%] 2xl:w-[48%]">
-//               <Image
-//                 src="/singleBranch.png"
-//                 alt=""
-//                 width={22}
-//                 height={22}
-//                 className=" h-6 w-6"
-//               />
-//               <div className="flex flex-col ml-2">
-//                 <p className="text-xl font-semibold">
-//                   {teacherData.attendance}
-//                 </p>
-//                 <p className="text-xs  text-gray-400">Branch</p>
-//               </div>
-//             </div>
-//             <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[45%] 2xl:w-[48%]">
-//               <Image
-//                 src="/singleClass.png"
-//                 alt=""
-//                 width={22}
-//                 height={22}
-//                 className=" h-6 w-6"
-//               />
-//               <div className="flex flex-col ml-2">
-//                 <p className="text-xl font-semibold">
-//                   {teacherData.attendance}
-//                 </p>
-//                 <p className="text-xs  text-gray-400">Class</p>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//         {/* Schedule Section */}
-//         <ComplianceCalender />
-//       </div>
-
-//       {/* Shortcuts and Announcements Section */}
-//       <div className="w-full xl:w-1/3 flex flex-col gap-4">
-//         <div className="bg-white rounded-md p-4">
-//           <h2 className="text-xl font-semibold mb-4">Shortcuts</h2>
-//           <div className="flex flex-wrap text-xs text-gary-500 gap-4">
-//             {shortcuts.map((shortcut) => (
-//               <Link
-//                 key={shortcut.label}
-//                 href={shortcut.href}
-//                 style={{ backgroundColor: "red-100" }}
-//                 className="p-3 rounded-md text-center bg-pink-200"
-//               >
-//                 {shortcut.label}
-//               </Link>
-//             ))}
-//           </div>
-//         </div>
-
-//         <h2 className="text-xl font-semibold mt-6 mb-4">Announcements</h2>
-//         <AnnouncementsComponent />
-//       </div>
-//     </div>
-//   );
-// };
-// export default SingleTeacherPage;
-// pages/complaints/[id].tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  getComplaintById,
-  complaints,
-  Complaint,
-  ComplaintStatus,
-  ComplaintPriority,
-} from "@/lib/complaints";
 import HistoryTimeline from "@/components/history-timeline";
+import apiClient from "@/app/lib/api";
+import { getToken } from "@/lib/auth";
+import { 
+    ComplaintStatus, 
+    ComplaintType, 
+    ActionType, 
+    ComplaintStatusLabels,
+    Governorate,
+    GovernorateNames
+} from "@/enums";
+import { 
+    Complaint, 
+    ComplaintAttachment as Attachment 
+} from "@/models/complaint";
 
-const statusBadgeStyles: Record<ComplaintStatus, string> = {
-  [ComplaintStatus.Pending]: "bg-yellow-50 text-yellow-700 border-yellow-100",
-  [ComplaintStatus.InProgress]: "bg-blue-50 text-blue-700 border-blue-100",
-  [ComplaintStatus.Completed]: "bg-green-50 text-green-700 border-green-100",
-  [ComplaintStatus.Rejected]: "bg-rose-50 text-rose-700 border-rose-100",
-};
+// ------------------------------------------------------------------
+// Types
+// ------------------------------------------------------------------
 
-const priorityBorderStyles: Record<ComplaintPriority, string> = {
-  Low: "border-gray-200 text-gray-600",
-  Medium: "border-amber-200 text-amber-600",
-  High: "border-orange-200 text-orange-600",
-  Urgent: "border-rose-200 text-rose-600",
-};
-
-const assignees = [
-  "Academic Coordinator",
-  "Branch Principal",
-  "Transport Lead",
-  "Facilities Manager",
-];
-
-const formatDateLong = (value: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-  }).format(new Date(value));
-
-const formatDateShort = (value: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-  }).format(new Date(value));
-
-const EmptyState = () => (
-  <div className="min-h-full bg-[#f7fbfa] flex items-center justify-center p-6">
-    <div className="max-w-md text-center space-y-4">
-      <p className="text-2xl font-semibold text-gray-900">
-        Complaint not found
-      </p>
-      <p className="text-sm text-gray-500">
-        The record you are looking for no longer exists. Return to the list to
-        select another complaint.
-      </p>
-      <Link
-        href="/list/complaints"
-        className="inline-flex items-center justify-center rounded-xl bg-gray-900 text-white px-4 py-2 text-sm font-semibold"
-      >
-        Back to complaints
-      </Link>
-    </div>
-  </div>
-);
-
-interface ComplaintPageProps {
-  params: { id: string };
+interface Props {
+    params: { id: string };
 }
 
-export default function ComplaintDetailsPage({ params }: ComplaintPageProps) {
-  const complaint = getComplaintById(params.id);
-  const [status, setStatus] = useState<ComplaintStatus>(
-    complaint?.status ?? ComplaintStatus.Pending
-  );
-  const [assignee, setAssignee] = useState(assignees[0]);
-  const [note, setNote] = useState("");
+// ------------------------------------------------------------------
+// Constants
+// ------------------------------------------------------------------
 
-  const relatedComplaints = useMemo(() => {
-    if (!complaint) return [];
-    return complaints
-      .filter(
-        (item) =>
-          item.id !== complaint.id && item.category === complaint.category
-      )
-      .slice(0, 3);
-  }, [complaint]);
+const PRIORITY_STYLES: Record<string, string> = {
+    Low: "border-gray-200 text-gray-600 bg-gray-50",
+    Medium: "border-amber-200 text-amber-600 bg-amber-50",
+    High: "border-orange-200 text-orange-600 bg-orange-50",
+    Urgent: "border-rose-200 text-rose-600 bg-rose-50",
+};
 
-  if (!complaint) return <EmptyState />;
+const STATUS_STYLES: Record<string, string> = {
+    [ComplaintStatusLabels[ComplaintStatus.Pending]]: "border-gray-200 text-gray-600 bg-gray-50",
+    [ComplaintStatusLabels[ComplaintStatus.InProgress]]: "border-amber-200 text-amber-600 bg-amber-50",
+    [ComplaintStatusLabels[ComplaintStatus.Completed]]: "border-green-200 text-green-600 bg-green-50",
+    [ComplaintStatusLabels[ComplaintStatus.Rejected]]: "border-rose-200 text-rose-600 bg-rose-50",
+};
 
-  return (
-    <div className="min-h-full bg-[#f7fbfa] p-4 md:p-6 space-y-6">
-      <header className="space-y-2">
-        <p className="text-xs uppercase text-gray-500 tracking-wide">
-          Complaint #{complaint.id}
-        </p>
-        <h1 className="text-3xl font-semibold text-gray-900">
-          {complaint.title}
-        </h1>
-        <div className="flex flex-wrap gap-2 items-center text-sm text-gray-500">
-          <span>Opened {formatDateLong(complaint.createdAt)}</span>
-          <span>•</span>
-          <span>Last updated {formatDateLong(complaint.updatedAt)}</span>
-          <span>•</span>
-          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold bg-white text-gray-700 border-gray-200">
-            Category: {complaint.category}
-          </span>
+const STATUS_MAP = ComplaintStatusLabels;
+
+const TYPE_MAP: Record<ComplaintType, string> = {
+    [ComplaintType.ServiceQuality]: "Service Quality",
+    [ComplaintType.Corruption]: "Corruption",
+    [ComplaintType.Delay]: "Delay",
+    [ComplaintType.Misconduct]: "Misconduct",
+    [ComplaintType.Other]: "Other",
+};
+
+const ASSIGNEES = [
+    "Unassigned",
+    "Government Agency",
+    "Inspector",
+    "Compliance Officer",
+];
+
+// ------------------------------------------------------------------
+// Helpers
+// ------------------------------------------------------------------
+
+function mapStatus(status: ComplaintStatus): string {
+    return STATUS_MAP[status];
+}
+
+function mapPriority(severity: number | undefined): string {
+    if (!severity) return "Low";
+    if (severity === 1) return "Low";
+    if (severity === 2) return "Medium";
+    if (severity === 3) return "High";
+    return "Urgent";
+}
+
+function mapType(type: ComplaintType): string {
+    return TYPE_MAP[type];
+}
+
+const formatLongDate = (value: string | undefined): string =>
+    value
+        ? new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+        }).format(new Date(value))
+        : "—";
+
+const formatShortDate = (value: string | undefined): string =>
+    value
+        ? new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "numeric",
+        }).format(new Date(value))
+        : "—";
+
+const formatFileSize = (size: number): string => {
+    const kb = size / 1024;
+    return kb < 1024 ? `${kb.toFixed(1)} KB` : `${(kb / 1024).toFixed(1)} MB`;
+};
+
+// ------------------------------------------------------------------
+// UI Components
+// ------------------------------------------------------------------
+
+const EmptyState = () => (
+    <div className="min-h-full bg-[#f7fbfa] flex items-center justify-center p-6">
+        <div className="max-w-md text-center space-y-4">
+            <p className="text-2xl font-semibold text-gray-900">Complaint not found</p>
+            <p className="text-sm text-gray-500">
+                The record you are looking for no longer exists.
+            </p>
+            <Link
+                href="/complaints"
+                className="inline-flex rounded-xl bg-gray-900 text-white px-4 py-2 text-sm font-semibold hover:bg-gray-800 transition-colors"
+            >
+                Back to complaints
+            </Link>
         </div>
-      </header>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6">
-          <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-6">
-            <div className="flex flex-wrap gap-4 items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500">Current status</p>
-                <span
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${statusBadgeStyles[complaint.status]}`}
-                >
-                  <span className="h-2 w-2 rounded-full bg-current opacity-80" />
-                  {complaint.status}
-                </span>
-              </div>
-              <span
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${priorityBorderStyles[complaint.priority]}`}
-              >
-                Priority: {complaint.priority}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                {
-                  label: "Created",
-                  value: formatDateShort(complaint.createdAt),
-                },
-                { label: "Due", value: formatDateShort(complaint.dueAt) },
-                {
-                  label: "Guardian",
-                  value: complaint.guardianName,
-                },
-              ].map((card) => (
-                <div
-                  key={card.label}
-                  className="rounded-xl border border-gray-100 p-4"
-                >
-                  <p className="text-xs text-gray-400 uppercase tracking-wide">
-                    {card.label}
-                  </p>
-                  <p className="text-base font-semibold text-gray-900 mt-1">
-                    {card.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-900">Summary</p>
-              <p className="text-sm text-gray-600">{complaint.summary}</p>
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-900">
-                Detailed context
-              </p>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {complaint.description}
-              </p>
-            </div>
-
-            {complaint.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {complaint.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600 border border-gray-100"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {complaint.attachments.length > 0 && (
-            <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-900">
-                  Attachments
-                </p>
-                <span className="text-xs text-gray-500">
-                  {complaint.attachments.length} files
-                </span>
-              </div>
-              <div className="space-y-3">
-                {complaint.attachments.map((file) => (
-                  <a
-                    key={file.name}
-                    href={file.url}
-                    className="flex items-center justify-between rounded-xl border border-gray-100 px-3 py-2 text-sm text-gray-700 hover:border-gray-200"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="h-9 w-9 rounded-xl bg-gray-50 flex items-center justify-center text-xs font-semibold text-gray-500">
-                        {file.type === "image" ? "IMG" : "PDF"}
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{file.name}</span>
-                        <span className="text-xs text-gray-400">
-                          Tap to preview
-                        </span>
-                      </div>
-                    </div>
-                    <span aria-hidden className="text-gray-400">
-                      ↗
-                    </span>
-                  </a>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-semibold text-gray-900">Timeline</p>
-              <span className="text-xs text-gray-500">
-                {complaint.timeline.length} updates
-              </span>
-            </div>
-            <HistoryTimeline events={complaint.timeline} />
-          </section>
-
-          {relatedComplaints.length > 0 && (
-            <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-900">
-                  Similar cases
-                </p>
-                <Link
-                  href="/list/complaints"
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-500"
-                >
-                  View all
-                </Link>
-              </div>
-              <div className="space-y-3">
-                {relatedComplaints.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={`/list/complaints/${item.id}`}
-                    className="flex flex-col rounded-xl border border-gray-100 px-3 py-2 text-sm hover:border-gray-200"
-                  >
-                    <span className="text-xs text-gray-400">
-                      #{item.id} · {item.status}
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      {item.title}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {item.studentName}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-
-        <aside className="space-y-6">
-          <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-            <p className="text-sm font-semibold text-gray-900">Take action</p>
-            <div className="space-y-3">
-              <label className="text-xs font-medium text-gray-500">
-                Update status
-              </label>
-              <select
-                value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as ComplaintStatus)
-                }
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none"
-              >
-                {Object.keys(statusBadgeStyles).map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-              <button className="w-full rounded-xl bg-gray-900 text-white text-sm font-semibold px-4 py-2 hover:bg-gray-800">
-                Save status
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-xs font-medium text-gray-500">
-                Assign to
-              </label>
-              <select
-                value={assignee}
-                onChange={(event) => setAssignee(event.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none"
-              >
-                {assignees.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-            <p className="text-sm font-semibold text-gray-900">Add note</p>
-            <textarea
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              placeholder="Add internal note for the support team..."
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm min-h-[120px] focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none"
-            />
-            <button className="w-full rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 px-4 py-2 hover:border-gray-300">
-              Record note
-            </button>
-          </section>
-          <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-            <p className="text-sm font-semibold text-gray-900">User info</p>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p className="flex justify-between">
-                <span className="text-gray-500">User Name</span>
-                <span className="font-medium">{complaint.studentName}</span>
-              </p>
-
-              <p className="flex justify-between">
-                <span className="text-gray-500">User ID</span>
-                <span className="font-medium">{complaint.studentId}</span>
-              </p>
-            </div>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p className="flex justify-between">
-                <span className="text-gray-500">Email</span>
-                <span className="font-medium">{complaint.email}</span>
-              </p>
-              <p className="flex justify-between">
-                <span className="text-gray-500">Phone</span>
-                <span className="font-medium">{complaint.phone}</span>
-              </p>
-            </div>
-          </section>
-        </aside>
-      </div>
     </div>
-  );
+);
+
+function Header({ complaint }: { complaint: Complaint | null }) {
+    const opened = formatLongDate(complaint?.createdAt);
+    const updated = formatLongDate(complaint?.updatedAt);
+    return (
+        <header className="space-y-2">
+            <p className="text-xs uppercase text-gray-500">
+                Complaint #{complaint?.referenceNumber ?? complaint?.id}
+            </p>
+            <h1 className="text-3xl font-semibold text-gray-900 break-words">
+                {complaint?.title || "—"}
+            </h1>
+            <div className="flex flex-wrap gap-2 text-sm text-gray-500">
+                <span>Opened {opened}</span>
+                <span>•</span>
+                <span>Last updated {updated}</span>
+            </div>
+        </header>
+    );
+}
+
+function Overview({ complaint }: { complaint: Complaint }) {
+    const statusLabel = mapStatus(complaint.status ?? ComplaintStatus.Pending);
+    const priorityLabel = mapPriority(complaint.severity);
+    const typeLabel = mapType(complaint.type ?? ComplaintType.Other);
+    return (
+        <section className="rounded-2xl bg-white p-6 shadow-sm space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <span className={`rounded-full border px-3 py-1 text-sm font-semibold ${STATUS_STYLES[statusLabel]}`}>
+                    {statusLabel}
+                </span>
+                <span className={`rounded-full border px-3 py-1 text-sm font-semibold ${PRIORITY_STYLES[priorityLabel]}`}>
+                    Priority: {priorityLabel}
+                </span>
+            </div>
+
+            <div className="space-y-4">
+                <div>
+                    <h3 className="font-medium text-sm text-gray-900 mb-2">Type</h3>
+                    <p className="text-sm text-gray-600">{typeLabel}</p>
+                </div>
+                <div>
+                    <h3 className="font-medium text-sm text-gray-900 mb-2">Description</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">{complaint.description}</p>
+                </div>
+                <div>
+                    <h3 className="font-medium text-sm text-gray-900 mb-2">Location</h3>
+                    <p className="text-sm text-gray-600">
+                        Lat: {complaint.locationLat}, Long: {complaint.locationLong}, Governorate: {complaint.governorate ? GovernorateNames[complaint.governorate as Governorate] : "N/A"}
+                    </p>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function Details({ complaint }: { complaint: Complaint }) {
+    return (
+        <section className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
+            <h3 className="font-medium text-sm text-gray-900">Complaint Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span className="text-gray-500">Citizen ID</span>
+                    <p className="font-medium">{complaint.citizenId}</p>
+                </div>
+                <div>
+                    <span className="text-gray-500">Government Entity</span>
+                    <p className="font-medium">{complaint.governmentEntityId}</p>
+                </div>
+                {complaint.agencyNotes && (
+                    <div className="md:col-span-2">
+                        <span className="text-gray-500">Agency Notes</span>
+                        <p className="font-medium text-gray-600">{complaint.agencyNotes}</p>
+                    </div>
+                )}
+                {complaint.additionalInfoRequest && (
+                    <div className="md:col-span-2">
+                        <span className="text-gray-500">Additional Info Requested</span>
+                        <p className="font-medium text-gray-600">{complaint.additionalInfoRequest}</p>
+                    </div>
+                )}
+                {complaint.lockedBy && (
+                    <div>
+                        <span className="text-gray-500">Locked By</span>
+                        <p className="font-medium">{complaint.lockedBy}</p>
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
+
+function Attachments({ complaint }: { complaint: Complaint }) {
+    const files = complaint.attachments ?? [];
+    return (
+        <section className="rounded-2xl bg-white p-6 shadow-sm space-y-3">
+            <h3 className="font-semibold text-sm text-gray-900">Attachments</h3>
+            {files.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No attachments added.</p>
+            ) : (
+                <ul className="space-y-2">
+                    {files.map((file) => {
+                        const name = (file as any).fileName ?? (file as any).name ?? "attachment";
+                        const url = (file as any).fileUrl ?? (file as any).url ?? "#";
+                        const size = (file as any).fileSize ?? 0;
+                        return (
+                            <li key={name + url}>
+                                <a
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block rounded-xl border border-gray-200 px-3 py-2 text-sm hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                                >
+                                    {name} ({formatFileSize(size)})
+                                </a>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </section>
+    );
+}
+
+function Timeline({ complaint }: { complaint: Complaint }) {
+    // Assume timeline is fetched or part of complaint; fallback to empty
+    const events = complaint.timeline ?? [];
+    return (
+        <section className="rounded-2xl bg-white p-6 shadow-sm">
+            <h3 className="font-semibold text-sm text-gray-900 mb-4">Activity Timeline</h3>
+            <HistoryTimeline events={events} />
+            {events.length === 0 && (
+                <p className="text-sm text-gray-500 italic mt-4">No activity recorded yet.</p>
+            )}
+        </section>
+    );
+}
+
+function Related({ complaints }: { complaints: Complaint[] }) {
+    if (complaints.length === 0) return null;
+
+    return (
+        <section className="rounded-2xl bg-white p-6 shadow-sm space-y-3">
+            <h3 className="font-semibold text-sm text-gray-900">Related Complaints</h3>
+            <ul className="space-y-2">
+                {complaints.map((item) => (
+                    <li key={item.id}>
+                        <Link
+                            href={`/complaints/${item.id}`}
+                            className="block text-sm text-gray-600 hover:text-gray-900 hover:underline transition-colors"
+                        >
+                            #{item.referenceNumber} — {item.title}
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}
+
+function Actions({
+    status,
+    assignee,
+    onStatusChange,
+    onAssigneeChange,
+    onSave,
+}: {
+    status: ComplaintStatus;
+    assignee: string;
+    onStatusChange: (s: ComplaintStatus) => void;
+    onAssigneeChange: (a: string) => void;
+    onSave: () => void;
+}) {
+    return (
+        <section className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
+            <h3 className="font-semibold text-sm text-gray-900">Quick Actions</h3>
+            <div className="space-y-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                <select
+                    value={status}
+                    onChange={(e) => onStatusChange(Number(e.target.value) as ComplaintStatus)}
+                    aria-label="Status"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                >
+                    {Object.entries(STATUS_MAP).map(([key, value]) => (
+                        <option key={key} value={key}>
+                            {value}
+                        </option>
+                    ))}
+                </select>
+
+                <label className="block text-xs font-medium text-gray-700 mb-1">Assignee</label>
+                <select
+                    value={assignee}
+                    onChange={(e) => onAssigneeChange(e.target.value)}
+                    aria-label="Assignee"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                >
+                    {ASSIGNEES.map((a) => (
+                        <option key={a} value={a}>
+                            {a}
+                        </option>
+                    ))}
+                </select>
+
+                <button
+                    onClick={onSave}
+                    className="w-full rounded-xl bg-amber-600 text-white py-2 text-sm font-semibold hover:bg-amber-700 transition-colors"
+                >
+                    Update Complaint
+                </button>
+            </div>
+        </section>
+    );
+}
+
+function Notes({
+    note,
+    onChange,
+}: {
+    note: string;
+    onChange: (v: string) => void;
+}) {
+    return (
+        <section className="rounded-2xl bg-white p-6 shadow-sm space-y-3">
+            <h3 className="font-semibold text-sm text-gray-900">Agency Notes</h3>
+            <textarea
+                value={note}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Add notes or updates..."
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm min-h-[120px] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-vertical"
+            />
+        </section>
+    );
+}
+
+function UserInfo({ complaint }: { complaint: Complaint }) {
+    return (
+        <section className="rounded-2xl bg-white p-6 shadow-sm text-sm space-y-3">
+            <h3 className="font-semibold text-gray-900">Citizen Information</h3>
+            <div className="space-y-2">
+                <div className="flex justify-between">
+                    <span className="text-gray-500">Citizen ID</span>
+                    <span className="font-medium">{complaint.citizenId}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="text-gray-500">Reference Number</span>
+                    <span className="font-medium">{complaint.referenceNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="text-gray-500">Government Entity ID</span>
+                    <span className="font-medium">{complaint.governmentEntityId}</span>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ------------------------------------------------------------------
+// Page
+// ------------------------------------------------------------------
+
+export default function ComplaintDetailsPage({ params }: Props) {
+    const [complaint, setComplaint] = useState<Complaint | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [currentStatus, setCurrentStatus] = useState<ComplaintStatus>(ComplaintStatus.New);
+    const [assignee, setAssignee] = useState(ASSIGNEES[0]);
+    const [note, setNote] = useState("");
+    const [saving, setSaving] = useState(false);
+
+    const relatedComplaints: Complaint[] = []; // Fetch or compute as needed
+
+    useEffect(() => {
+        let mounted = true;
+        const load = async () => {
+            setLoading(true);
+            try {
+                const token = getToken();
+                const data = await apiClient.getComplaint(params.id, token);
+                if (!mounted) return;
+                if (data) {
+                    setComplaint(data);
+                    setCurrentStatus((data.status ?? ComplaintStatus.New) as ComplaintStatus);
+                    setNote(data.agencyNotes ?? "");
+                    setAssignee(data.lockedBy ?? ASSIGNEES[0]);
+                } else {
+                    setComplaint(null);
+                }
+            } catch (err) {
+                console.error("Failed to load complaint:", err);
+                setComplaint(null);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+        load();
+        return () => {
+            mounted = false;
+        };
+    }, [params.id]);
+
+    const handleSave = async () => {
+        if (!complaint) return;
+        setSaving(true);
+        try {
+            const token = getToken();
+            const payload = {
+                id: complaint.id,
+                status: Number(currentStatus),
+                agencyNotes: note || null,
+                additionalInfoRequest: complaint.additionalInfoRequest ?? null,
+            };
+
+            const updated = await apiClient.updateComplaintStatus(payload, token);
+
+            // If API returned updated complaint object, merge it; otherwise apply optimistic update
+            if (updated && typeof updated === "object" && updated.id === complaint.id) {
+                setComplaint((prev) => ({ ...prev, ...(updated as any) }));
+                setCurrentStatus((updated as any).status ?? currentStatus);
+                setNote((updated as any).agencyNotes ?? note);
+                setAssignee((updated as any).lockedBy ?? (assignee === "Unassigned" ? ASSIGNEES[0] : assignee));
+            } else {
+                setComplaint((prev) => prev ? { ...prev, status: currentStatus, agencyNotes: note || null, lockedBy: assignee === "Unassigned" ? null : assignee } : prev);
+            }
+        } catch (err) {
+            console.error("Failed to update complaint:", err);
+            // Handle error (e.g., toast)
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-full bg-[#f7fbfa] flex items-center justify-center p-6">
+                <div className="text-lg text-gray-600">Loading complaint details...</div>
+            </div>
+        );
+    }
+
+    if (!complaint) return <EmptyState />;
+
+    return (
+        <div className="min-h-full bg-[#f7fbfa] p-4 md:p-6 space-y-6">
+            <Header complaint={complaint} />
+
+            <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+                <main className="space-y-6">
+                    <Overview complaint={complaint} />
+                    <Details complaint={complaint} />
+                    <Attachments complaint={complaint} />
+                    <Timeline complaint={complaint} />
+                    <Related complaints={relatedComplaints} />
+                </main>
+
+                <aside className="space-y-6 lg:sticky lg:top-6 self-start">
+                    <Actions
+                        status={currentStatus}
+                        assignee={assignee}
+                        onStatusChange={setCurrentStatus}
+                        onAssigneeChange={setAssignee}
+                        onSave={handleSave}
+                    />
+                    <Notes note={note} onChange={setNote} />
+                    <UserInfo complaint={complaint} />
+                </aside>
+            </div>
+        </div>
+    );
 }

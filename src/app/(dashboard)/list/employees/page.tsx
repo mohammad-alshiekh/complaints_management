@@ -9,10 +9,13 @@ import {
   Building2, 
   Search, 
   UserPlus, 
-   CheckCircle2,
+  MoreVertical,
+  CheckCircle2,
   XCircle,
   Filter,
-    ShieldCheck,
+  ArrowUpDown,
+  User,
+  ShieldCheck,
   Building,
   Mail,
   Loader2
@@ -22,15 +25,29 @@ import apiClient from "@/app/lib/api";
 import { getToken } from "@/lib/auth";
 import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";
+ import { TableSkeleton, AgencySkeleton } from "@/components/Skeletons";
 import { Modal } from "@/components/Modal";
-import { TableSkeleton, AgencySkeleton } from "@/components/Skeletons";
-import {  User,Agency } from "@/models/user";
+
+// --- Types ---
+
+interface Employee {
+  id: string;
+  fullName: string;
+  email: string;
+  governmentEntityId: string;
+  status?: "Active" | "Suspended";
+}
+
+interface Agency {
+  id: string;
+  name: string;
+}
 
 // --- Main Page Component ---
 
-const UsersPage = () => {
+const EmployeesPage = () => {
   // State
-  const [users, setUsers] = useState<User[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [selectedAgencyId, setSelectedAgencyId] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -41,16 +58,16 @@ const UsersPage = () => {
   // Modals State
   const [modals, setModals] = useState({
     addEmployee: false,
-    deleteUser: false,
+    deleteEmployee: false,
     addAgency: false,
     editAgency: false,
   });
 
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
 
   // Forms State
-  const [userForm, setUserForm] = useState({
+  const [employeeForm, setEmployeeForm] = useState({
     fullName: "",
     email: "",
     password: "",
@@ -69,9 +86,9 @@ const UsersPage = () => {
 
   useEffect(() => {
     if (selectedAgencyId) {
-      fetchUsers();
+      fetchEmployees();
     } else {
-      setUsers([]);
+      setEmployees([]);
     }
   }, [selectedAgencyId]);
 
@@ -92,13 +109,13 @@ const UsersPage = () => {
       // Fallback
       const FALLBACK_ID = "159a6f1f-31de-4eef-8f26-0d47a7cb8b78";
       setSelectedAgencyId(FALLBACK_ID);
-      await fetchUsers(FALLBACK_ID);
+      await fetchEmployees(FALLBACK_ID);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUsers = async (agencyIdParam?: string) => {
+  const fetchEmployees = async (agencyIdParam?: string) => {
     const agencyId = agencyIdParam ?? selectedAgencyId;
     if (!agencyId) return;
     
@@ -108,45 +125,45 @@ const UsersPage = () => {
       if (!token) return;
       
       const data = await apiClient.getAgencyUsers(agencyId, token);
-      setUsers(data);
+      setEmployees(data);
     } catch (error: any) {
-      toast.error(error.message || "Failed to load users");
+      toast.error(error.message || "Failed to load employees");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateUser = async () => {
+  const handleCreateEmployee = async () => {
     try {
       const token = getToken();
       if (!token) return;
       
-      if (!userForm.fullName || !userForm.email || !userForm.password) {
+      if (!employeeForm.fullName || !employeeForm.email || !employeeForm.password) {
         return toast.error("Please fill in all required fields");
       }
 
-      await apiClient.createAgencyUser(userForm, token);
-      toast.success("User created successfully");
+      await apiClient.createAgencyUser(employeeForm, token);
+      toast.success("Employee created successfully");
       setModals(prev => ({ ...prev, addEmployee: false }));
-      fetchUsers();
+      fetchEmployees();
     } catch (error: any) {
       toast.error(error.message || "Creation failed");
     }
   };
 
-  const toggleUserStatus = async (user: User, activate: boolean) => {
+  const toggleEmployeeStatus = async (employee: Employee, activate: boolean) => {
     try {
       const token = getToken();
       if (!token) return;
       
       if (activate) {
-        await apiClient.activateUser(user.id, token);
-        toast.success("User activated");
+        await apiClient.activateUser(employee.id, token);
+        toast.success("Employee activated");
       } else {
-        await apiClient.deactivateUser(user.id, token);
-        toast.success("User deactivated");
+        await apiClient.deactivateUser(employee.id, token);
+        toast.success("Employee deactivated");
       }
-      fetchUsers();
+      fetchEmployees();
     } catch (error: any) {
       toast.error(error.message || "Status update failed");
     }
@@ -197,19 +214,19 @@ const UsersPage = () => {
 
   // --- Memoized Data ---
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(u => 
-      u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEmployees = useMemo(() => {
+    return employees.filter(e => 
+      e.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [users, searchTerm]);
+  }, [employees, searchTerm]);
 
-  const paginatedUsers = useMemo(() => {
+  const paginatedEmployees = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return filteredUsers.slice(start, start + itemsPerPage);
-  }, [filteredUsers, currentPage]);
+    return filteredEmployees.slice(start, start + itemsPerPage);
+  }, [filteredEmployees, currentPage]);
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
 
   // --- Render ---
 
@@ -220,7 +237,7 @@ const UsersPage = () => {
         <div>
           <h1 className="text-3xl font-bold text-[#1E293B] tracking-tight flex items-center gap-3">
             <ShieldCheck className="text-[#0C3DA7] w-8 h-8" />
-            Users Management
+            Employees Management
           </h1>
           <p className="text-[#64748B] text-base mt-2 max-w-2xl">
             A comprehensive overview of all government agencies and their assigned staff members. 
@@ -242,13 +259,13 @@ const UsersPage = () => {
           <Button 
             onClick={() => {
               if (!selectedAgencyId) return toast.error("Select an agency first");
-              setUserForm({ fullName: "", email: "", password: "", governmentEntityId: selectedAgencyId });
+              setEmployeeForm({ fullName: "", email: "", password: "", governmentEntityId: selectedAgencyId });
               setModals(m => ({ ...m, addEmployee: true }));
             }}
             className="flex-1 md:flex-none h-11 px-6 rounded-xl bg-[#0C3DA7] text-white hover:bg-[#0A348E] shadow-lg shadow-blue-100 transition-all"
           >
             <UserPlus className="w-4 h-4 mr-2" />
-            Add User
+            Add Employee
           </Button>
         </div>
       </div>
@@ -321,7 +338,7 @@ const UsersPage = () => {
           </div>
         </aside>
 
-        {/* Main Content: Users Table */}
+        {/* Main Content: Employees Table */}
         <main className="lg:col-span-9 space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
             {/* Table Controls */}
@@ -342,7 +359,7 @@ const UsersPage = () => {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg text-gray-500 text-sm font-medium border border-gray-100">
                   <Filter size={14} />
-                  <span>Showing {paginatedUsers.length} Users</span>
+                  <span>Showing {paginatedEmployees.length} Employees</span>
                 </div>
               </div>
             </div>
@@ -365,19 +382,19 @@ const UsersPage = () => {
                         <TableSkeleton />
                       </td>
                     </tr>
-                  ) : paginatedUsers.length > 0 ? (
-                    paginatedUsers.map((user) => (
-                      <tr key={user.id} className="group hover:bg-gray-50/80 transition-all duration-150">
+                  ) : paginatedEmployees.length > 0 ? (
+                    paginatedEmployees.map((employee) => (
+                      <tr key={employee.id} className="group hover:bg-gray-50/80 transition-all duration-150">
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-4">
                             <div className={cn(
                               "w-11 h-11 rounded-xl flex items-center justify-center font-bold text-base shadow-sm border-2 border-white",
-                              user.status === "Suspended" ? "bg-red-50 text-red-600" : "bg-blue-50 text-[#0C3DA7]"
+                              employee.status === "Suspended" ? "bg-red-50 text-red-600" : "bg-blue-50 text-[#0C3DA7]"
                             )}>
-                              {user.fullName.charAt(0).toUpperCase()}
+                              {employee.fullName.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-bold text-[#1E293B] text-[15px]">{user.fullName}</span>
+                              <span className="font-bold text-[#1E293B] text-[15px]">{employee.fullName}</span>
                               <span className="text-[12px] text-gray-400 font-medium flex items-center gap-1">
                                 <Building size={12} />
                                 Staff Member
@@ -388,21 +405,21 @@ const UsersPage = () => {
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
                             <Mail size={14} className="text-gray-400" />
-                            {user.email}
+                            {employee.email}
                           </div>
                         </td>
                         <td className="px-6 py-5">
                           <span className={cn(
                             "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider",
-                            user.status === "Suspended" 
+                            employee.status === "Suspended" 
                               ? "bg-red-50 text-red-600" 
                               : "bg-green-50 text-green-600"
                           )}>
                             <span className={cn(
                               "w-1.5 h-1.5 rounded-full",
-                              user.status === "Suspended" ? "bg-red-500 animate-pulse" : "bg-green-500"
+                              employee.status === "Suspended" ? "bg-red-500 animate-pulse" : "bg-green-500"
                             )}></span>
-                            {user.status || "Active"}
+                            {employee.status || "Active"}
                           </span>
                         </td>
                         <td className="px-6 py-5 text-right">
@@ -410,7 +427,7 @@ const UsersPage = () => {
                             <Button 
                               size="icon-sm"
                               variant="ghost"
-                              onClick={() => toggleUserStatus(user, true)}
+                              onClick={() => toggleEmployeeStatus(employee, true)}
                               className="text-green-600 hover:bg-green-50 hover:text-green-700 rounded-lg"
                               title="Activate Account"
                             >
@@ -419,7 +436,7 @@ const UsersPage = () => {
                             <Button 
                               size="icon-sm"
                               variant="ghost"
-                              onClick={() => toggleUserStatus(user, false)}
+                              onClick={() => toggleEmployeeStatus(employee, false)}
                               className="text-orange-600 hover:bg-orange-50 hover:text-orange-700 rounded-lg"
                               title="Deactivate Account"
                             >
@@ -429,8 +446,8 @@ const UsersPage = () => {
                               size="icon-sm"
                               variant="ghost"
                               onClick={() => {
-                                setSelectedUser(user);
-                                setModals(m => ({ ...m, deleteUser: true }));
+                                setSelectedEmployee(employee);
+                                setModals(m => ({ ...m, deleteEmployee: true }));
                               }}
                               className="text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg"
                               title="Delete Permanently"
@@ -446,11 +463,11 @@ const UsersPage = () => {
                       <td colSpan={4} className="px-6 py-20 text-center">
                         <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
                           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100">
-                            {/* <User size={40} className="text-gray-300" /> */}
+                            <User size={40} className="text-gray-300" />
                           </div>
                           <div className="space-y-1">
-                            <h4 className="font-bold text-[#1E293B]">No staff found</h4>
-                            <p className="text-gray-400 text-sm font-medium">There are no staff members currently assigned to this agency.</p>
+                            <h4 className="font-bold text-[#1E293B]">No employees found</h4>
+                            <p className="text-gray-400 text-sm font-medium">There are no employees currently assigned to this agency.</p>
                           </div>
                           <Button 
                             variant="outline"
@@ -458,7 +475,7 @@ const UsersPage = () => {
                             className="mt-2 rounded-xl border-[#0C3DA7] text-[#0C3DA7] hover:bg-blue-50"
                           >
                             <UserPlus size={16} className="mr-2" />
-                            Add First User
+                            Add First Employee
                           </Button>
                         </div>
                       </td>
@@ -472,7 +489,7 @@ const UsersPage = () => {
             {totalPages > 1 && (
               <div className="p-5 border-t border-gray-100 flex justify-between items-center bg-gray-50/20">
                 <p className="text-sm font-semibold text-gray-500">
-                  Showing <span className="text-[#0C3DA7]">{paginatedUsers.length}</span> of <span className="text-[#0C3DA7]">{filteredUsers.length}</span> total users
+                  Showing <span className="text-[#0C3DA7]">{paginatedEmployees.length}</span> of <span className="text-[#0C3DA7]">{filteredEmployees.length}</span> total employees
                 </p>
                 <div className="flex gap-2">
                   <Button 
@@ -502,21 +519,21 @@ const UsersPage = () => {
 
       {/* --- Modals --- */}
 
-      {/* Add User Modal */}
+      {/* Add Employee Modal */}
       {modals.addEmployee && (
-        <Modal title="Add New User" onClose={() => setModals(m => ({ ...m, addEmployee: false }))}>
+        <Modal title="Add New Employee" onClose={() => setModals(m => ({ ...m, addEmployee: false }))}>
           <div className="space-y-6">
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                {/* <User size={14} className="text-[#0C3DA7]" /> */}
+                <User size={14} className="text-[#0C3DA7]" />
                 Full Name
               </label>
               <input 
                 type="text" 
                 placeholder="Enter full name"
                 className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#0C3DA7]/5 focus:border-[#0C3DA7] outline-none transition-all font-medium text-sm"
-                value={userForm.fullName}
-                onChange={e => setUserForm({ ...userForm, fullName: e.target.value })}
+                value={employeeForm.fullName}
+                onChange={e => setEmployeeForm({ ...employeeForm, fullName: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -528,8 +545,8 @@ const UsersPage = () => {
                 type="email" 
                 placeholder="email@government.gov"
                 className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#0C3DA7]/5 focus:border-[#0C3DA7] outline-none transition-all font-medium text-sm"
-                value={userForm.email}
-                onChange={e => setUserForm({ ...userForm, email: e.target.value })}
+                value={employeeForm.email}
+                onChange={e => setEmployeeForm({ ...employeeForm, email: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -541,16 +558,16 @@ const UsersPage = () => {
                 type="password" 
                 placeholder="••••••••••••"
                 className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#0C3DA7]/5 focus:border-[#0C3DA7] outline-none transition-all font-medium text-sm"
-                value={userForm.password}
-                onChange={e => setUserForm({ ...userForm, password: e.target.value })}
+                value={employeeForm.password}
+                onChange={e => setEmployeeForm({ ...employeeForm, password: e.target.value })}
               />
             </div>
             <div className="pt-2">
               <Button 
-                onClick={handleCreateUser}
+                onClick={handleCreateEmployee}
                 className="w-full py-6 bg-[#0C3DA7] text-white rounded-xl font-bold hover:bg-[#0A348E] transition-all shadow-lg shadow-blue-100"
               >
-                Create Staff Account
+                Create Employee Account
               </Button>
             </div>
           </div>
@@ -611,8 +628,8 @@ const UsersPage = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {modals.deleteUser && (
-        <Modal title="Confirm Permanent Deletion" onClose={() => setModals(m => ({ ...m, deleteUser: false }))}>
+      {modals.deleteEmployee && (
+        <Modal title="Confirm Permanent Deletion" onClose={() => setModals(m => ({ ...m, deleteEmployee: false }))}>
           <div className="text-center space-y-6 py-2">
             <div className="w-20 h-20 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-red-100">
               <Trash2 size={36} />
@@ -620,23 +637,23 @@ const UsersPage = () => {
             <div className="space-y-2">
               <h4 className="font-bold text-[#1E293B] text-xl tracking-tight">Are you absolutely sure?</h4>
               <p className="text-[#64748B] text-sm font-medium leading-relaxed">
-                You are about to permanently remove <span className="text-red-600 font-bold">{selectedUser?.fullName}</span>. 
+                You are about to permanently remove <span className="text-red-600 font-bold">{selectedEmployee?.fullName}</span>. 
                 This action will revoke all access immediately and cannot be reversed.
               </p>
             </div>
             <div className="flex gap-3 pt-2">
               <Button 
                 variant="outline"
-                onClick={() => setModals(m => ({ ...m, deleteUser: false }))}
+                onClick={() => setModals(m => ({ ...m, deleteEmployee: false }))}
                 className="flex-1 py-6 rounded-xl border-gray-200 font-bold text-gray-500 hover:bg-gray-50 transition-all"
               >
-                Keep User
+                Keep Employee
               </Button>
               <Button 
                 onClick={async () => {
-                  if (selectedUser) {
-                    await toggleUserStatus(selectedUser, false);
-                    setModals(m => ({ ...m, deleteUser: false }));
+                  if (selectedEmployee) {
+                    await toggleEmployeeStatus(selectedEmployee, false);
+                    setModals(m => ({ ...m, deleteEmployee: false }));
                   }
                 }}
                 className="flex-1 py-6 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-100"
@@ -651,4 +668,4 @@ const UsersPage = () => {
   );
 };
 
-export default UsersPage;
+export default EmployeesPage;

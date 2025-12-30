@@ -1,24 +1,33 @@
 import { NextRequest } from "next/server";
-import { ApiRoutes } from "@/lib/api-routes";
+ import { ApiHelper } from "@/lib/api-helper";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  return ApiRoutes.adminAgencies.getById(request, params.id);
-}
+        return ApiHelper.get(request, `/admin/agencies/${params.id}`);
+
+ }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  return ApiRoutes.adminAgencies.update(request, params.id);
-}
+ const body = await request.json();
+
+      // Validate request body
+      const validationError = ApiHelper.validateBody(body, ["name"]);
+      if (validationError) {
+        return validationError;
+      }
+
+      return ApiHelper.put(request, `/admin/agencies/${params.id}`, body);}
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  return ApiRoutes.adminAgencies.delete(request, params.id);
-}
+        return ApiHelper.delete(request, `/admin/agencies/${params.id}`);
+
+ }
 

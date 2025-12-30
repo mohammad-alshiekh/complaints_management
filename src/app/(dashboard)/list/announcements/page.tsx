@@ -72,92 +72,67 @@ const pieColors = ["#1E88E5", "#00C49F", "#FFB300"];
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-[#E6ECF5]">
-
-      {/* TOP BAR */}
-      <div className="bg-[#0C3DA7] text-white px-8 py-4 flex items-center justify-between">
-        {/* LEFT */}
-        <div className="flex items-center gap-3 text-lg font-bold">
-          <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">📘</div>
-          SMART CMS
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Announcements & Reports</h1>
+          <p className="text-gray-500 text-sm mt-1">Detailed statistics and system communications.</p>
         </div>
-
-        {/* CENTER */}
-        <div className="text-sm opacity-80">
-          APPLICATION / <span className="font-semibold">DASHBOARD</span>
-        </div>
-
-        {/* RIGHT */}
-        <div className="flex items-center gap-5 text-xl">
-          <MdLanguage />
-          <FiBell />
-          <div className="w-8 h-8 bg-white rounded-full"></div>
-        </div>
+        <button className="bg-[#0C3DA7] text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2">
+          New Announcement
+        </button>
       </div>
 
-      {/* MENU BAR */}
-      <div className="bg-[#0C3DA7] text-white px-8 py-3 flex gap-10 text-sm">
-        <div className="flex items-center gap-2 cursor-pointer"><FiHome /> Dashboard</div>
-        <div className="flex items-center gap-2 cursor-pointer"><FiDatabase /> Complaints</div>
-        <div className="flex items-center gap-2 cursor-pointer"><FiUser /> Users</div>
-        <div className="flex items-center gap-2 cursor-pointer"><BiStore /> Store</div>
-        <div className="flex items-center gap-2 cursor-pointer"><BsBoxes /> Stock</div>
-        <div className="flex items-center gap-2 cursor-pointer"><FiMail /> Inbox</div>
-        <div className="flex items-center gap-2 cursor-pointer"><FiBarChart2 /> Reporting</div>
-      </div>
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-8">Complaints Statistics</h2>
 
-      {/* MAIN CONTENT */}
-      <div className="p-8">
-        <div className="bg-white p-8 rounded-2xl shadow-md">
-
-          <h2 className="text-2xl font-semibold mb-6">Complaints Statistics</h2>
-
-          {/* STATS CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
-            {stats.map((s, i) => (
-              <div
-                key={i}
-                className="bg-white shadow rounded-xl p-6 text-center border"
-              >
-                <div className="text-3xl">{s.icon}</div>
-                <div className="text-3xl font-bold mt-2">{s.value}</div>
-                <div className="text-gray-500 mt-1">{s.title}</div>
-              </div>
-            ))}
-
-            {/* GAUGE (STATIC IMAGE STYLE) */}
-            <div className="bg-white shadow rounded-xl p-6 flex flex-col items-center">
-              <img src="/gauge.png" alt="gauge" className="w-28" />
-              <p className="mt-2 text-gray-500 text-sm">Risk Meter</p>
+        {/* STATS CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+          {stats.map((s, i) => (
+            <div
+              key={i}
+              className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100 hover:border-blue-200 transition-all"
+            >
+              <div className="text-3xl mb-2">{s.icon}</div>
+              <div className="text-2xl font-bold text-gray-900">{s.value.toLocaleString()}</div>
+              <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider mt-1">{s.title}</div>
             </div>
+          ))}
+
+          {/* GAUGE (STATIC IMAGE STYLE) */}
+          <div className="bg-gray-50 rounded-2xl p-6 flex flex-col items-center border border-gray-100">
+            <img src="/gauge.png" alt="gauge" className="w-20" />
+            <p className="mt-2 text-gray-400 text-xs font-semibold uppercase tracking-wider">Risk Meter</p>
           </div>
+        </div>
 
-          {/* CHART ROW */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-
-            {/* BAR CHART */}
-            <div className="bg-white p-6 shadow rounded-xl lg:col-span-2">
-              <h3 className="text-lg font-semibold mb-4">Monthly Complaints Status</h3>
-              <ResponsiveContainer width="100%" height={300}>
+        {/* CHART ROW */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* BAR CHART */}
+          <div className="bg-white p-6 border border-gray-100 rounded-2xl lg:col-span-2">
+            <h3 className="text-lg font-bold text-gray-900 mb-6">Monthly Complaints Status</h3>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-
-                  <Bar dataKey="pending" fill="#FF3333" />
-                  <Bar dataKey="inprogress" fill="#66BB6A" />
-                  <Bar dataKey="completed" fill="#42A5F5" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar dataKey="pending" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="inprogress" fill="#22C55E" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="completed" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
+          </div>
 
-            {/* PIE CHART + STATS */}
-            <div className="bg-white p-6 shadow rounded-xl">
-              <h3 className="text-lg font-semibold mb-3">Category Wise Complaints Ratio</h3>
-
-              <ResponsiveContainer width="100%" height={300}>
+          {/* PIE CHART + STATS */}
+          <div className="bg-white p-6 border border-gray-100 rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-6">Category Ratio</h3>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
@@ -165,19 +140,19 @@ export default function DashboardPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={100}
-                    label
+                    outerRadius={80}
+                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                   >
                     {pieData.map((_, i) => (
-                      <Cell key={i} fill={pieColors[i]} />
+                      <Cell key={i} fill={pieColors[i % pieColors.length]} />
                     ))}
                   </Pie>
+                  <Tooltip />
+                  <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: '20px' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-
           </div>
-
         </div>
       </div>
     </div>

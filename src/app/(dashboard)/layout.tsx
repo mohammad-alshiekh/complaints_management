@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Menu from "@/components/Menu";
 import RouteGuard from "@/components/RouteGuard";
-import { MdLanguage } from "react-icons/md";
-import { FiBell } from "react-icons/fi";
+import Navbar from "@/components/navbar";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Management Dashboard",
@@ -15,38 +15,34 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <RouteGuard>
-      <div className="h-screen flex">
-        {/* Main Content Area */}
-        <div className="w-full flex flex-col">
-          <div className="h-[128px] flex-shrink-0">
-            {/* TOP BAR */}
-            <div className="bg-[#0C3DA7] text-white px-8 py-4 flex items-center justify-between">
-              {/* LEFT */}
-              <div className="flex items-center gap-3 text-lg font-bold">
-                <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">📘</div>
-                SMART CMS
-              </div>
-
-              {/* CENTER */}
-              <div className="text-sm opacity-80">
-                APPLICATION / <span className="font-semibold">DASHBOARD</span>
-              </div>
-
-              {/* RIGHT */}
-              <div className="flex items-center gap-5 text-xl">
-                <MdLanguage />
-                <FiBell />
-                <div className="w-8 h-8 bg-white rounded-full"></div>
-              </div>
+    <RouteGuard allowedRoles={["admin", "employee"]}>
+      <div className="h-screen flex bg-[#F8FAFC]">
+        {/* SIDEBAR */}
+        <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] p-4 flex flex-col border-r border-gray-200 bg-white">
+          <Link
+            href="/"
+            className="flex items-center justify-center lg:justify-start gap-3 mb-8 px-2"
+          >
+            <div className="w-10 h-10 bg-[#0C3DA7] rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+              <span className="text-xl font-bold italic">S</span>
             </div>
-
-            {/* MENU BAR */}
+            <span className="hidden lg:block font-bold text-xl text-[#1E293B] tracking-tight">
+              SMART CMS
+            </span>
+          </Link>
+          <div className="flex-1 overflow-y-auto no-scrollbar">
             <Menu />
           </div>
-          <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {children}
-          </div>
+        </div>
+
+        {/* MAIN CONTENT AREA */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="max-w-[1600px] mx-auto">
+              {children}
+            </div>
+          </main>
         </div>
       </div>
     </RouteGuard>

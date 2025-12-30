@@ -10,7 +10,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const userRole = getUserRole();
-    
+
     // Redirect based on role if needed, or show default dashboard
     // For now, we'll show the same dashboard for both roles
     // You can customize this later to show different dashboards

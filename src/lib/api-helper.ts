@@ -1,4 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+ 
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: any;
+  meta?: any;
+}
 
 /**
  * Request configuration interface
@@ -88,7 +96,7 @@ export class ApiHelper {
     response: Response,
     data: any,
     errorContext: string
-  ): NextResponse {
+  ): NextResponse<ApiResponse> {
     const message =
       typeof data === "string"
         ? data
@@ -97,15 +105,14 @@ export class ApiHelper {
     console.error(`${errorContext} API Error:`, {
       status: response.status,
       message,
+      data,
     });
 
     return NextResponse.json(
       {
         success: false,
         message,
-        ...(data && typeof data === "object" && !data.message && !data.error
-          ? data
-          : {}),
+        error: data,
       },
       { status: response.status }
     );
@@ -116,9 +123,17 @@ export class ApiHelper {
    */
   private static handleSuccessResponse(
     response: Response,
-    data: any
-  ): NextResponse {
-    return NextResponse.json(data, { status: response.status });
+    data: any,
+    message: string = "Operation successful"
+  ): NextResponse<ApiResponse> {
+    return NextResponse.json(
+      {
+        success: true,
+        message,
+        data,
+      },
+      { status: response.status }
+    );
   }
 
   /**
@@ -127,12 +142,16 @@ export class ApiHelper {
   private static validateAuth(
     request: NextRequest,
     requiresAuth: boolean = true
-  ): NextResponse | null {
+  ): NextResponse<ApiResponse> | null {
     if (requiresAuth) {
       const authHeader = request.headers.get("Authorization");
       if (!authHeader) {
         return NextResponse.json(
-          { success: false, message: "Authorization header is required" },
+          {
+            success: false,
+            message: "Authorization header is required",
+            error: "Unauthorized",
+          },
           { status: 401 }
         );
       }
@@ -177,6 +196,7 @@ export class ApiHelper {
         {
           success: false,
           message: error.message || "An error occurred",
+          error,
         },
         { status: 500 }
       );
@@ -198,10 +218,11 @@ export class ApiHelper {
       if (authError) return authError;
 
       // Build headers with JSON content type by default only if body exists
-      const headers = this.buildHeaders(request, {
-        ...config,
-        contentType: config.contentType ?? (body ? "application/json" : undefined),
-      });
+      if (body && !config.contentType) {
+        config.contentType = "application/json";
+      }
+
+      const headers = this.buildHeaders(request, config);
 
       // Make request
       const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
@@ -225,6 +246,7 @@ export class ApiHelper {
         {
           success: false,
           message: error.message || "An error occurred",
+          error,
         },
         { status: 500 }
       );
@@ -245,23 +267,20 @@ export class ApiHelper {
       const authError = this.validateAuth(request, config.requiresAuth);
       if (authError) return authError;
 
-      // Build headers with JSON content type by default only if body exists
-      const headers = this.buildHeaders(request, {
-        ...config,
-        contentType: config.contentType ?? (body ? "application/json" : undefined),
-      });
+      if (body && !config.contentType) {
+        config.contentType = "application/json";
+      }
 
-      // Make request
+      const headers = this.buildHeaders(request, config);
+
       const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
         method: "PUT",
         headers,
         body: body ? JSON.stringify(body) : undefined,
       });
 
-      // Parse response
       const { data } = await this.parseResponse(response);
 
-      // Handle response
       if (!response.ok) {
         return this.handleErrorResponse(response, data, "PUT");
       }
@@ -273,6 +292,7 @@ export class ApiHelper {
         {
           success: false,
           message: error.message || "An error occurred",
+          error,
         },
         { status: 500 }
       );
@@ -288,23 +308,18 @@ export class ApiHelper {
     config: ApiRequestConfig = {}
   ): Promise<NextResponse> {
     try {
-      // Validate auth if required
       const authError = this.validateAuth(request, config.requiresAuth);
       if (authError) return authError;
 
-      // Build headers
       const headers = this.buildHeaders(request, config);
 
-      // Make request
       const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
         method: "DELETE",
         headers,
       });
 
-      // Parse response
       const { data } = await this.parseResponse(response);
 
-      // Handle response
       if (!response.ok) {
         return this.handleErrorResponse(response, data, "DELETE");
       }
@@ -316,6 +331,7 @@ export class ApiHelper {
         {
           success: false,
           message: error.message || "An error occurred",
+          error,
         },
         { status: 500 }
       );
@@ -323,69 +339,32 @@ export class ApiHelper {
   }
 
   /**
-   * PATCH request
+   * Helper to validate request body
    */
-  static async patch(
-    request: NextRequest,
-    endpoint: string,
-    body?: any,
-    config: ApiRequestConfig = {}
-  ): Promise<NextResponse> {
-    try {
-      // Validate auth if required
-      const authError = this.validateAuth(request, config.requiresAuth);
-      if (authError) return authError;
-
-      // Build headers with JSON content type by default
-      const headers = this.buildHeaders(request, {
-        ...config,
-        contentType: config.contentType ?? "application/json",
-      });
-
-      // Make request
-      const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
-        method: "PATCH",
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-      });
-
-      // Parse response
-      const { data } = await this.parseResponse(response);
-
-      // Handle response
-      if (!response.ok) {
-        return this.handleErrorResponse(response, data, "PATCH");
-      }
-
-      return this.handleSuccessResponse(response, data);
-    } catch (error: any) {
-      console.error(`PATCH ${endpoint} Error:`, error);
+  static validateBody(body: any, requiredFields: string[]): NextResponse<ApiResponse> | null {
+    if (!body) {
       return NextResponse.json(
         {
           success: false,
-          message: error.message || "An error occurred",
+          message: "Request body is required",
+          error: "Missing Body",
         },
-        { status: 500 }
+        { status: 400 }
       );
     }
-  }
 
-  /**
-   * Validate request body (helper method)
-   */
-  static validateBody(
-    body: any,
-    requiredFields: string[]
-  ): NextResponse | null {
-    for (const field of requiredFields) {
-      if (!body || body[field] === undefined || body[field] === null) {
-        return NextResponse.json(
-          { success: false, message: `${field} is required` },
-          { status: 400 }
-        );
-      }
+    const missingFields = requiredFields.filter((field) => !body[field]);
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Missing required fields: ${missingFields.join(", ")}`,
+          error: { missingFields },
+        },
+        { status: 400 }
+      );
     }
+
     return null;
   }
 }
-

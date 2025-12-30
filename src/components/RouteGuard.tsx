@@ -31,13 +31,18 @@ export default function RouteGuard({
         return;
       }
 
+      const roleName = userRole === 0 ? "admin" : userRole === 1 ? "employee" : null;
+
       // If route has specific role requirements
       if (allowedRoles && allowedRoles.length > 0) {
-        const roleName = userRole === 0 ? "admin" : userRole === 1 ? "employee" : null;
         
         if (!roleName || !allowedRoles.includes(roleName)) {
-          // User doesn't have required role, redirect to dashboard
-          router.push(redirectTo);
+          // User doesn't have required role
+          if (userRole === 1) {
+            router.push("/complaints");
+          } else {
+            router.push(redirectTo);
+          }
           return;
         }
       }

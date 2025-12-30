@@ -1,13 +1,5 @@
-// Token management utilities
+import { LoginResponse, User, Credentials } from "@/models/auth";
 
-export interface LoginResponse {
-  token: string;
-  userId: string;
-  email: string;
-  userRole: number; // 👈 NEW
-  success: boolean;
-  message: string;
-}
 export const setUserRole = (role: number): void => {
   if (typeof window === "undefined") return;
   localStorage.setItem("userRole", role.toString());
@@ -18,8 +10,7 @@ export const getUserRole = (): number | null => {
   const role = localStorage.getItem("userRole");
   return role ? Number(role) : null;
 };
-
-export const removeUserRole = (): void => {
+ export const removeUserRole = (): void => {
   if (typeof window === "undefined") return;
   localStorage.removeItem("userRole");
 };

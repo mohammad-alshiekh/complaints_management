@@ -1,13 +1,13 @@
-import { ComplaintApiResponse } from "@/lib/complaints";
+import { ComplaintApiResponse } from "@/models/complaint";
 
-const config = { 
-  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://complaint.runasp.net/api", 
-  nextAuthUrl: process.env.NEXTAUTH_URL ?? "http://127.0.0.1:8000", 
+const config = {
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://complaint.runasp.net/api",
+  nextAuthUrl: process.env.NEXTAUTH_URL ?? "http://127.0.0.1:8000",
 };
- 
 
- 
-  
+
+
+
 type JsonBody = Record<string, unknown>;
 type ApiResult<T> = { data: T; message?: string };
 
@@ -23,7 +23,7 @@ class ApiError extends Error {
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: JsonBody | FormData;
-  withCredentials?: boolean; 
+  withCredentials?: boolean;
 };
 
 class ApiClient {
@@ -73,11 +73,11 @@ class ApiClient {
       clearTimeout(timeoutId);
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
-      
+
       // Handle network errors (CORS, connection refused, timeout, etc.)
       const errorMessage = fetchError.message || "Network error";
       const errorName = fetchError.name || "";
-      
+
       // Check for specific error types
       if (errorName === "AbortError" || errorMessage.includes("timeout")) {
         throw new ApiError(
@@ -86,9 +86,9 @@ class ApiClient {
           { originalError: fetchError, url }
         );
       }
-      
+
       if (
-        errorMessage.includes("Failed to fetch") || 
+        errorMessage.includes("Failed to fetch") ||
         errorMessage.includes("NetworkError") ||
         errorMessage.includes("Network request failed") ||
         errorMessage.includes("ERR_INTERNET_DISCONNECTED") ||
@@ -101,14 +101,14 @@ class ApiClient {
           baseUrl: this.baseUrl,
           error: fetchError.message,
         });
-        
+
         throw new ApiError(
           `Unable to connect to the server at ${this.baseUrl}. This could be due to:\n- CORS policy restrictions\n- Server is down or unreachable\n- Network connectivity issues\n\nPlease check your internet connection or contact support.`,
           0,
           { originalError: fetchError, url, baseUrl: this.baseUrl }
         );
       }
-      
+
       throw new ApiError(
         `Network request failed: ${errorMessage}`,
         0,
@@ -125,24 +125,42 @@ class ApiClient {
     if (!response.ok) {
       const message =
         (payload &&
-        typeof payload === "object" &&
-        "message" in payload &&
-        typeof payload.message === "string"
+          typeof payload === "object" &&
+          "message" in payload &&
+          typeof payload.message === "string"
           ? payload.message
           : "Request failed") ?? response.statusText;
 
       throw new ApiError(message, response.status, payload);
     }
 
+    // If the request was to our own Next.js API routes (starts with /api/),
+    // we need to unwrap the standard ApiResponse envelope
+    if (url.startsWith("/api/") && payload && typeof payload === "object") {
+      // Check if it matches our ApiResponse structure
+      if ("success" in payload && "data" in payload) {
+         if (payload.success) {
+           return payload.data as T;
+         } else {
+           // This case should be handled by response.ok check above usually,
+           // but if we return 200 OK with success: false (which we shouldn't based on ApiHelper),
+           // we handle it here.
+           // However, ApiHelper uses appropriate status codes.
+           // So if we are here, success is likely true.
+           return payload.data as T;
+         }
+      }
+    }
+
     return payload as T;
   }
 
-   login(body: { email: string; password: string }) {
-     return this.request<{
+  login(body: { email: string; password: string }) {
+    return this.request<{
       token: string;
       userId: string;
       email: string;
-      userRole: number; 
+      userRole: number;
       success: boolean;
       message: string;
     }>("/api/auth/login", {
@@ -167,12 +185,12 @@ class ApiClient {
       withCredentials: false,
     });
   }
-   // --- LOGIN NOW WORKS ---
-   register(body: { name: string; email: string; password: string }) {
+  // --- LOGIN NOW WORKS ---
+  register(body: { name: string; email: string; password: string }) {
     return this.request<ApiResult<{ user: any }>>("/register", {
       method: "POST",
       body,
-      withCredentials: false,  
+      withCredentials: false,
     });
   }
 
@@ -230,15 +248,101 @@ class ApiClient {
     });
   }
 
-  // Agency Methods - Using Next.js API routes to bypass CORS
-  async getAgencies(token: string | null) {
-    return this.request<Array<{
+  async getComplaint(complaintId: string, token: string | null) {
+    return this.request<{
       id: string;
-      name: string;
-    }>>("/api/admin/agencies", {
+      title: string;
+      description: string;
+      severity?: number;
+      status?: number;
+      citizenId?: string;
+      referenceNumber?: string;
+      type?: number;
+      governmentEntityId?: string;
+      locationLong?: number;
+      locationLat?: number;
+      governorate?: number;
+      agencyNotes?: string | null;
+      additionalInfoRequest?: any;
+      attachments?: Array<{ name: string; url: string }>;
+      lockedBy?: any;
+      rowVersion?: string;
+      createdAt?: string;
+      updatedAt?: string;
+      studentName?: string;
+      email?: string;
+      timeline?: any[];
+    }>(`/api/complaint/${complaintId}`, {
       method: "GET",
       headers: this.getAuthHeaders(token),
     });
+  }
+
+  async updateComplaint(complaintId: string, body: any, token: string | null) {
+    return this.request<any>(`/api/complaint/${complaintId}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(token),
+      body,
+    });
+  }
+
+  /**
+   * Update complaint status (proxy to /Complaint/status)
+   * Body should include: { id: string, status: number, agencyNotes?: string|null, additionalInfoRequest?: string|null }
+   */
+  async updateComplaintStatus(body: { id: string; status: number; agencyNotes?: string | null; additionalInfoRequest?: string | null }, token: string | null) {
+    return this.request<any>(`/api/complaint/status`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(token),
+      body,
+    });
+  }
+
+  // Agency Methods - Using Next.js API routes to bypass CORS
+  async getAgencies(token: string | null) {
+    // Use the analytics "by-agency" endpoint which returns counts grouped
+    // by government entity. Map the returned objects to the simple
+    // { id, name } shape expected by callers.
+    const payload = await this.request<Array<{
+      governmentEntityId: string;
+      governmentEntityName: string;
+      count: number;
+    }>>("/api/analytics/by-agency", {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+
+    if (!Array.isArray(payload)) return [];
+
+    return payload.map((p) => ({ id: p.governmentEntityId, name: p.governmentEntityName }));
+  }
+
+  /**
+   * Get complaints count grouped by governorate
+   */
+  async getComplaintsByGovernorate(token: string | null) {
+    // Use Next.js API route proxy to avoid CORS (server-side will call external API)
+    return this.request<Array<{ governorate: number; count: number }>>(
+      "/api/analytics/by-governorate",
+      {
+        method: "GET",
+        headers: this.getAuthHeaders(token),
+      }
+    );
+  }
+
+  /**
+   * Get complaints count grouped by agency/government entity
+   */
+  async getComplaintsByAgency(token: string | null) {
+    // Call internal Next.js proxy route to avoid CORS
+    return this.request<Array<{ governmentEntityId: string; governmentEntityName: string; count: number }>>(
+      "/api/analytics/by-agency",
+      {
+        method: "GET",
+        headers: this.getAuthHeaders(token),
+      }
+    );
   }
 
   async createAgency(body: { name: string }, token: string | null) {
@@ -271,15 +375,39 @@ class ApiClient {
     });
   }
 
-  async getComplaints(token: string | null) {
-    // Use Next.js API route proxy to avoid CORS issues
-    return this.request<ComplaintApiResponse[]>("/api/complaints", {
+  /**
+   * Get complaints with pagination, optional agencyId and status
+   * @param token Auth token
+   * @param params { page, size, agencyId, complaintStatus }
+   */
+  async getComplaints(
+    token: string | null,
+    params?: {
+      page?: number;
+      size?: number;
+      agencyId?: string;
+      complaintStatus?: number;
+    }
+  ) {
+    // Build query string
+    const query = new URLSearchParams();
+    if (params?.page) query.append("page", params.page.toString());
+    if (params?.size) query.append("size", params.size.toString());
+    if (params?.agencyId) query.append("agencyId", params.agencyId);
+    if (
+      params?.complaintStatus !== undefined &&
+      params.complaintStatus !== null
+    ) {
+      query.append("complaintStatus", params.complaintStatus.toString());
+    }
+    const url = `/api/complaints${query.toString() ? `?${query}` : ""}`;
+    return this.request<ComplaintApiResponse[]>(url, {
       method: "GET",
       headers: this.getAuthHeaders(token),
     });
   }
 }
 
- 
+
 const apiClient = new ApiClient();
 export default apiClient;

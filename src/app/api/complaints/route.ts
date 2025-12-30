@@ -1,7 +1,18 @@
 import { NextRequest } from "next/server";
-import { ApiRoutes } from "@/lib/api-routes";
+ import { ApiHelper } from "@/lib/api-helper";
 
 export async function GET(request: NextRequest) {
-  return ApiRoutes.complaints.getAll(request);
-}
+      const { searchParams } = new URL(request.url);
+        const query = searchParams.toString();
+        const endpoint = `/Complaint${query ? `?${query}` : ""}`;
+        
+        return ApiHelper.get(
+          request,
+          endpoint,
+          {
+            requiresAuth: true, 
+            acceptType: "application/json",
+          }
+        );
+  }
 

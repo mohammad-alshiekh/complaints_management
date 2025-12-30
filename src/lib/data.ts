@@ -35,6 +35,12 @@ export const menuItems = [
       },
       {
         icon: "/profile.png",
+        label: "Employees",
+        href: "/list/employees",
+        visible: ["admin"],
+      },
+      {
+        icon: "/profile.png",
         label: "Profile",
         href: "/profile",
         visible: ["admin", "employee"],

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -10,11 +10,11 @@ import {
   XAxis,
   YAxis,
   ResponsiveContainer,
+  LabelList,
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
+   
 } from "recharts";
 
 import {
@@ -25,6 +25,10 @@ import {
   MdCancel,
   MdTrendingUp,
 } from "react-icons/md";
+import apiClient from "../../lib/api";
+import { getToken } from "@/lib/auth";
+import { Button } from "@/components/button";
+import { GovernorateNames } from "@/enums";
 
 // ======================================
 // DUMMY DATA (NO EXPORTS HERE)
@@ -73,15 +77,10 @@ const monthlyData = [
   { month: "Jul", pending: 6, inprogress: 20, completed: 42, canceled: 5 },
 ];
 
-const complaintsByState = [
-  { state: "Damascus", value: 120 },
-  { state: "Aleppo", value: 95 },
-  { state: "Homs", value: 60 },
-  { state: "Latakia", value: 40 },
-  { state: "Hama", value: 70 },
-  { state: "Raqqa", value: 25 },
-  { state: "Deir ez-Zor", value: 15 },
-];
+ const initialGovernorateData = Object.keys(GovernorateNames).map((k) => ({
+  state: GovernorateNames[Number(k) as keyof typeof GovernorateNames],
+  value: 0,
+}));
 
 const complaintsByOrg = [
   { name: "Resources", value: 12, color: "#FF9500" },
@@ -90,26 +89,96 @@ const complaintsByOrg = [
   { name: "Law", value: 3, color: "#00C49F" },
 ];
 
+// Agency chart initial
+const initialAgencyData: { name: string; value: number; color?: string }[] = [];
+
 // ======================================
 // PAGE COMPONENT
 // ======================================
 
 export default function DashboardPage() {
+  const [complaintsByState, setComplaintsByState] = useState(initialGovernorateData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [complaintsByAgency, setComplaintsByAgency] = useState(initialAgencyData);
+  const [isAgencyLoading, setIsAgencyLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setIsLoading(true);
+        const token = getToken();
+        const data = await apiClient.getComplaintsByGovernorate(token);
+        // transform to chart format and preserve order of GovernorateNames
+        const mapped = Object.keys(GovernorateNames).map((k) => {
+          const key = Number(k);
+          const found = (data || []).find((d) => Number(d.governorate) === key);
+          return { state: GovernorateNames[key as keyof typeof GovernorateNames], value: found ? Math.round(Number(found.count)) : 0 };
+        });
+        setComplaintsByState(mapped);
+        // Fetch agency analytics
+        try {
+          setIsAgencyLoading(true);
+          const agency = await apiClient.getComplaintsByAgency(token);
+          const palette = ["#FF9500", "#8B5CF6", "#FF6B6B", "#00C49F", "#F59E0B", "#06B6D4", "#A78BFA"];
+          const mappedAgency = (agency || []).map((a, idx) => ({
+            name: a.governmentEntityName || a.governmentEntityId,
+            value: Math.round(Number(a.count || 0)),
+            color: palette[idx % palette.length],
+          }));
+          setComplaintsByAgency(mappedAgency);
+        } catch (e) {
+          console.error("Failed to load agency analytics:", e);
+          setComplaintsByAgency([]);
+        } finally {
+          setIsAgencyLoading(false);
+        }
+      } catch (err) {
+        console.error("Failed to load governorate analytics:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, []);
+
   return (
-    <div className="min-h-screen p-5 bg-white">
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">System Overview</h1>
+          <p className="text-gray-500 text-sm mt-1">Real-time analytics and complaint statistics.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-gray-600">Live Status</span>
+          </div>
+          <Button className="bg-[#0C3DA7] text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2">
+            <MdTrendingUp />
+            Generate Report
+          </Button>
+        </div>
+      </div>
 
       {/* ======================================
           STAT CARDS
       ======================================= */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-5 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {stats.map((s, i) => (
           <div
             key={i}
-            className="bg-white shadow rounded-xl p-6 border flex flex-col items-center justify-center gap-3"
+            className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all group"
           >
-            <div className="text-4xl">{s.icon}</div>
-            <div className="text-3xl font-semibold text-gray-900">{s.value}</div>
-            <div className="text-gray-500 text-sm font-medium">{s.title}</div>
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-blue-50 transition-colors">
+                {s.icon}
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{s.value.toLocaleString()}</div>
+                <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mt-1">{s.title}</div>
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -117,63 +186,146 @@ export default function DashboardPage() {
       {/* ======================================
           CHART GRID
       ======================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* Line Chart: Complaints per State */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Complaints per State</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={complaintsByState}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="state" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
+        {/* Complaints per State */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 lg:col-span-8 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Complaints per State</h3>
+              <p className="text-xs text-gray-500">Distribution across governorates</p>
+            </div>
+            <select className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-100">
+              <option>Last 30 Days</option>
+              <option>Last 6 Months</option>
+              <option>Year to Date</option>
+            </select>
+          </div>
+          
+          {isLoading ? (
+            <div className="w-full h-80 rounded-2xl bg-gray-50 animate-pulse" />
+          ) : (
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={complaintsByState}
+                  margin={{ top: 20, right: 20, left: -20, bottom: 0 }}
+                  barSize={32}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                  <XAxis
+                    dataKey="state"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: '#64748B' }}
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 11, fill: '#64748B' }} 
+                    allowDecimals={false} 
+                  />
+                  <Tooltip 
+                    cursor={{ fill: '#F8FAFC' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar dataKey="value" fill="#0C3DA7" radius={[6, 6, 0, 0]}>
+                    <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#64748B', fontWeight: 600 }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
-        {/* Pie Chart: Complaints per Organization */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Complaints per Type</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie
-                data={complaintsByOrg}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={2}
-                dataKey="value"
-                nameKey="name"
-              >
-                {complaintsByOrg.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend verticalAlign="bottom" align="center" iconType="circle" />
-            </PieChart>
-          </ResponsiveContainer>
+        {/* Complaints per Agency */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 lg:col-span-4 shadow-sm flex flex-col">
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-gray-900">Complaints per Agency</h3>
+            <p className="text-xs text-gray-500">Categorical breakdown</p>
+          </div>
+          
+          <div className="flex-1 min-h-[300px] relative">
+            {isAgencyLoading ? (
+              <div className="absolute inset-0 rounded-2xl bg-gray-50 animate-pulse" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={complaintsByAgency.length ? complaintsByAgency : complaintsByOrg}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                    nameKey="name"
+                  >
+                    {(complaintsByAgency.length ? complaintsByAgency : complaintsByOrg).map((entry, index) => (
+                      <Cell key={index} fill={entry.color || "#8884d8"} stroke="none" />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    align="center" 
+                    iconType="circle" 
+                    wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
 
-        {/* Bar Chart: Monthly Complaints Status */}
-        <div className="bg-white p-6 shadow rounded-xl lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4">Monthly Complaints Status</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="pending" fill="#FF3333" />
-              <Bar dataKey="inprogress" fill="#66BB6A" />
-              <Bar dataKey="completed" fill="#42A5F5" />
-              <Bar dataKey="canceled" fill="#9CA3AF" />
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Monthly Complaints Status */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 lg:col-span-12 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Monthly Performance Trend</h3>
+              <p className="text-xs text-gray-500">Status-wise monthly breakdown</p>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                <span className="w-3 h-3 rounded-full bg-red-500"></span> Pending
+              </div>
+              <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                <span className="w-3 h-3 rounded-full bg-green-500"></span> In Progress
+              </div>
+              <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                <span className="w-3 h-3 rounded-full bg-blue-500"></span> Completed
+              </div>
+            </div>
+          </div>
+
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                <XAxis 
+                  dataKey="month" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 12, fill: '#64748B' }} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 12, fill: '#64748B' }} 
+                />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                />
+                <Bar dataKey="pending" fill="#EF4444" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar dataKey="inprogress" fill="#22C55E" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar dataKey="completed" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={12} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
       </div>

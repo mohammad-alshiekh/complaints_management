@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
-import { ApiRoutes } from "@/lib/api-routes";
+ import { ApiHelper } from "@/lib/api-helper";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  return ApiRoutes.adminUsers.deactivate(request, params.id);
+      return ApiHelper.put(request, `/admin/users/${params.id}/deactivate`);
 }
 

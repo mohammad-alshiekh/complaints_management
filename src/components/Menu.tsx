@@ -30,27 +30,40 @@ const Menu = () => {
   }
 
   return (
-    <div className="w-full bg-[#0C3DA7] text-white px-4 p-3 flex gap-6 overflow-x-auto no-scrollbar">
-      {filteredItems.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(item.href + "/");
-
-        return (
-          <Link
-            href={item.href}
-            key={item.label}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md whitespace-nowrap cursor-pointer transition
-              ${active ? "bg-white text-[#0C3DA7] font-semibold" : "text-white hover:bg-blue-700"}`}
-          >
-            <Image
-              src={item.icon}
-              alt={item.label}
-              width={20}
-              height={20}
-            />
-            <span className="text-sm">{item.label}</span>
-          </Link>
-        );
-      })}
+    <div className="mt-4 text-sm px-2">
+      {menuItems.map((section) => (
+        <div className="flex flex-col gap-2 mb-6" key={section.title}>
+          <span className="hidden lg:block text-gray-400 font-medium uppercase text-xs tracking-wider px-4 mb-2">
+            {section.title}
+          </span>
+          {section.items
+            .filter((item) => role && item.visible.includes(role))
+            .map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + "/");
+              return (
+                <Link
+                  href={item.href}
+                  key={item.label}
+                  className={`flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-3 px-4 rounded-xl transition-all duration-200 group
+                    ${active 
+                      ? "bg-[#0C3DA7] text-white shadow-lg shadow-blue-200" 
+                      : "hover:bg-gray-50 hover:text-[#0C3DA7]"
+                    }`}
+                >
+                  <div className={`relative w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${active ? "brightness-0 invert" : ""}`}>
+                    <Image
+                      src={item.icon}
+                      alt={item.label}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <span className="hidden lg:block font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+        </div>
+      ))}
     </div>
   );
 };

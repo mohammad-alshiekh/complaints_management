@@ -77,9 +77,17 @@ const LoginForm = () => {
       
         toast.success("Successful login");
         
-        // Redirect to the redirect param if exists, otherwise go to dashboard
+        // Redirect based on role
         const redirect = searchParams.get("redirect");
-        router.push(redirect || "/dashboard");
+        if (redirect) {
+          router.push(redirect);
+        } else if (response.userRole === 1) {
+          // Employee role -> redirect to standalone complaints page
+          router.push("/complaints");
+        } else {
+          // Admin role (or others) -> redirect to dashboard
+          router.push("/dashboard");
+        }
       }
       else {
         setError(response.message || "Login failed");
