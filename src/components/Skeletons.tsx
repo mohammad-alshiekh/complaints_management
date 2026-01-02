@@ -32,7 +32,7 @@ export const AgencySkeleton = () => (
 export const ComplaintTableSkeleton = () => (
   <div className="w-full animate-pulse overflow-hidden rounded-2xl border border-gray-100 bg-white">
     <div className="h-16 border-b border-gray-50 bg-gray-50/50 px-6 flex items-center gap-4">
-      {[...Array(6)].map((_, i) => (
+      {[...Array(10)].map((_, i) => (
         <div key={i} className="h-4 bg-gray-200 rounded flex-1" />
       ))}
     </div>
@@ -40,13 +40,15 @@ export const ComplaintTableSkeleton = () => (
       {[...Array(10)].map((_, i) => (
         <div key={i} className="flex items-center gap-4 p-6">
           <div className="h-4 w-12 bg-gray-100 rounded" />
-          <div className="h-4 flex-1 bg-gray-100 rounded" />
+          <div className="h-4 flex-[2] bg-gray-100 rounded" />
           <div className="h-6 w-24 bg-gray-50 rounded-full" />
-          <div className="h-4 w-32 bg-gray-50 rounded" />
+          <div className="h-4 flex-1 bg-gray-50 rounded" />
           <div className="h-4 w-16 bg-gray-50 rounded" />
           <div className="h-4 w-24 bg-gray-50 rounded" />
+          <div className="h-4 w-24 bg-gray-50 rounded" />
+          <div className="h-8 w-24 bg-gray-100 rounded-full" />
+          <div className="h-4 w-24 bg-gray-100 rounded" />
           <div className="h-8 w-20 bg-gray-100 rounded-full" />
-          <div className="h-8 w-16 bg-gray-100 rounded-full" />
         </div>
       ))}
     </div>

@@ -389,16 +389,16 @@ class ApiClient {
       complaintStatus?: number;
     }
   ) {
-    // Build query string
+    // Build query string - Using PageNumber and PageSize as expected by the backend
     const query = new URLSearchParams();
-    if (params?.page) query.append("page", params.page.toString());
-    if (params?.size) query.append("size", params.size.toString());
-    if (params?.agencyId) query.append("agencyId", params.agencyId);
+    if (params?.page) query.append("PageNumber", params.page.toString());
+    if (params?.size) query.append("PageSize", params.size.toString());
+    if (params?.agencyId) query.append("AgencyId", params.agencyId);
     if (
       params?.complaintStatus !== undefined &&
       params.complaintStatus !== null
     ) {
-      query.append("complaintStatus", params.complaintStatus.toString());
+      query.append("ComplaintStatus", params.complaintStatus.toString());
     }
     const url = `/api/complaints${query.toString() ? `?${query}` : ""}`;
     return this.request<ComplaintApiResponse[]>(url, {

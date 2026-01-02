@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 
 const statusStyles = {
   New: "bg-blue-500 text-white",
