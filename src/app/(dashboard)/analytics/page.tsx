@@ -23,8 +23,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DashboardLayout } from "@/components/dashboard-layout"
-
 const performanceData = [
   { name: "Jan", executions: 4000, success: 3800, failed: 200, avgDuration: 45 },
   { name: "Feb", executions: 3000, success: 2850, failed: 150, avgDuration: 42 },
@@ -90,9 +88,8 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("30d")
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
-        {/* Header */}
+    <div className="space-y-8">
+      {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
@@ -386,7 +383,6 @@ export default function AnalyticsPage() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   )
 }

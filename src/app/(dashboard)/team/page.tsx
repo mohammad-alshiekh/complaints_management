@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { DashboardLayout } from "@/components/dashboard-layout"
+
 
 const teamMembers = [
   {
@@ -146,6 +146,7 @@ const roles = [
 
 export default function TeamPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [activeTab, setActiveTab] = useState("all")
 
   const filteredMembers = teamMembers.filter(
     (member) =>
@@ -173,8 +174,7 @@ export default function TeamPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -465,6 +465,5 @@ export default function TeamPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   )
 }
