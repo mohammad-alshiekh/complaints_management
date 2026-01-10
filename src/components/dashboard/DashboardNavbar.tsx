@@ -18,6 +18,10 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from "@/components/ui/tooltip";
+import { getUser } from "@/lib/auth";
+import { useEffect, useState } from "react";
+
+import { useLanguage } from "@/lib/language-context";
 
 interface DashboardNavbarProps {
   sidebarOpen: boolean;
@@ -32,8 +36,21 @@ export function DashboardNavbar({
   setMobileMenuOpen,
   notifications,
 }: DashboardNavbarProps) {
+  const [userInitials, setUserInitials] = useState("JD");
+  const [userImage, setUserImage] = useState<string | null>(null);
+  const { t, dir } = useLanguage();
+
+  useEffect(() => {
+    const user = getUser() as any;
+    if (user) {
+      const displayName = user.name || user.fullName || user.email || "JD";
+      setUserInitials(displayName.charAt(0).toUpperCase());
+      setUserImage(user.image || user.avatarUrl || null);
+    }
+  }, []);
+
   return (
-    <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur-md" dir={dir}>
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-4">
           <Button
@@ -42,7 +59,7 @@ export function DashboardNavbar({
             className="hidden md:flex rounded-2xl"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
-            <PanelLeft className="h-5 w-5" />
+            <PanelLeft className={`h-5 w-5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
           </Button>
           <Button
             variant="ghost"
@@ -52,57 +69,16 @@ export function DashboardNavbar({
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="relative hidden w-64 lg:block">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search anything..."
-              className="w-full rounded-2xl bg-muted/50 pl-9 pr-4 py-2 focus-visible:ring-primary"
-            />
-          </div>
+          
         </div>
 
         <div className="flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-2xl">
-                  <Cloud className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Cloud Storage</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-2xl">
-                  <MessageSquare className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Messages</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-2xl relative">
-                  <Bell className="h-5 w-5" />
-                  {notifications > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                      {notifications}
-                    </span>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Notifications</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <Avatar className="h-9 w-9 border-2 border-primary ml-2">
-            <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
-            <AvatarFallback>JD</AvatarFallback>
+          <Avatar className="h-10 w-10     overflow-hidden">
+             <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-medium">
+              {userInitials}
+            </AvatarFallback>
           </Avatar>
         </div>
       </div>

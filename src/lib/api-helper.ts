@@ -33,8 +33,8 @@ export class ApiHelper {
     request: NextRequest,
     config: ApiRequestConfig = {}
   ): HeadersInit {
-    const headers: HeadersInit = {
-      Accept: config.acceptType ?? "text/plain",
+    const headers: Record<string, string> = {
+      "accept": config.acceptType ?? "text/plain",
     };
 
     // Add authorization header if required
@@ -97,10 +97,33 @@ export class ApiHelper {
     data: any,
     errorContext: string
   ): NextResponse<ApiResponse> {
-    const message =
-      typeof data === "string"
-        ? data
-        : data?.message || data?.error || "Request failed";
+    let message = "Request failed";
+
+    if (typeof data === "string" && data.trim() !== "") {
+      message = data;
+    } else if (data?.message) {
+      message = data.message;
+    } else if (data?.error) {
+      message = typeof data.error === "string" ? data.error : (data.error.message || "Request failed");
+    } else {
+      // Fallback to standard HTTP messages if no custom message in body
+      switch (response.status) {
+        case 401:
+          message = "Unauthorized: Please log in to continue.";
+          break;
+        case 403:
+          message = "Forbidden: You do not have permission to perform this action.";
+          break;
+        case 404:
+          message = "Not Found: The requested resource could not be found.";
+          break;
+        case 500:
+          message = "Internal Server Error: Something went wrong on the server.";
+          break;
+        default:
+          message = response.statusText || `Error ${response.status}`;
+      }
+    }
 
     console.error(`${errorContext} API Error:`, {
       status: response.status,
@@ -126,13 +149,18 @@ export class ApiHelper {
     data: any,
     message: string = "Operation successful"
   ): NextResponse<ApiResponse> {
+    // If response is 204 No Content or 201 Created, we normalize to 200
+    // to ensure consistent handling and avoid potential NextResponse issues
+    // with certain status codes in some environments.
+    const status = (response.status === 204 || response.status === 201) ? 200 : response.status;
+    
     return NextResponse.json(
       {
         success: true,
         message,
-        data,
+        data: data || {},
       },
-      { status: response.status }
+      { status }
     );
   }
 
@@ -217,8 +245,10 @@ export class ApiHelper {
       const authError = this.validateAuth(request, config.requiresAuth);
       if (authError) return authError;
 
-      // Build headers with JSON content type by default only if body exists
-      if (body && !config.contentType) {
+      const isFormData = body instanceof FormData;
+
+      // Build headers with JSON content type by default only if body exists and is not FormData
+      if (body && !config.contentType && !isFormData) {
         config.contentType = "application/json";
       }
 
@@ -228,7 +258,7 @@ export class ApiHelper {
       const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
         method: "POST",
         headers,
-        body: body ? JSON.stringify(body) : undefined,
+        body: isFormData ? body : body ? JSON.stringify(body) : undefined,
       });
 
       // Parse response
@@ -267,7 +297,9 @@ export class ApiHelper {
       const authError = this.validateAuth(request, config.requiresAuth);
       if (authError) return authError;
 
-      if (body && !config.contentType) {
+      const isFormData = body instanceof FormData;
+
+      if (body && !config.contentType && !isFormData) {
         config.contentType = "application/json";
       }
 
@@ -276,7 +308,7 @@ export class ApiHelper {
       const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
         method: "PUT",
         headers,
-        body: body ? JSON.stringify(body) : undefined,
+        body: isFormData ? body : body ? JSON.stringify(body) : undefined,
       });
 
       const { data } = await this.parseResponse(response);

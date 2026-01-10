@@ -17,7 +17,7 @@ const Navbar = () => {
 
     const userRole = getUserRole();
     if (userRole === 0) setRole("Admin");
-    else if (userRole === 1) setRole("Employee");
+    else if (userRole === 1) setRole("User");
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);

@@ -51,7 +51,14 @@ class ApiClient {
     const isFormData = body instanceof FormData;
     const finalHeaders = new Headers(headers ?? {});
 
-    // Auto-apply JSON header only if NOT formdata
+    // Automatically add Authorization header if token exists in localStorage
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token && !finalHeaders.has("Authorization")) {
+        finalHeaders.set("Authorization", `Bearer ${token}`);
+      }
+    }
+
     if (!isFormData && !finalHeaders.has("Content-Type")) {
       finalHeaders.set("Content-Type", "application/json");
     }
@@ -78,7 +85,6 @@ class ApiClient {
       const errorMessage = fetchError.message || "Network error";
       const errorName = fetchError.name || "";
 
-      // Check for specific error types
       if (errorName === "AbortError" || errorMessage.includes("timeout")) {
         throw new ApiError(
           "Request timed out. The server is taking too long to respond. Please try again.",
@@ -116,6 +122,10 @@ class ApiClient {
       );
     }
 
+    if (response.status === 204) {
+      return {} as T;
+    }
+
     const contentType = response.headers.get("content-type") ?? "";
     const payload =
       contentType.includes("application/json")
@@ -123,13 +133,42 @@ class ApiClient {
         : await response.text();
 
     if (!response.ok) {
-      const message =
-        (payload &&
-          typeof payload === "object" &&
-          "message" in payload &&
-          typeof payload.message === "string"
-          ? payload.message
-          : "Request failed") ?? response.statusText;
+      let message = "Request failed";
+      
+      if (payload && typeof payload === "object") {
+        // Try to find a message in common locations
+        const potentialMessage = 
+          (payload as any).message || 
+          (payload as any).error?.message || 
+          (payload as any).error || 
+          (payload as any).errorMessage;
+          
+        if (typeof potentialMessage === "string" && potentialMessage.trim() !== "") {
+          message = potentialMessage;
+        } else if (typeof potentialMessage === "object" && potentialMessage !== null) {
+           // Handle case where error might be an object with its own message
+           message = (potentialMessage as any).message || JSON.stringify(potentialMessage);
+        } else if (response.status === 403) {
+          message = "Forbidden: You do not have permission to perform this action.";
+        } else if (response.status === 401) {
+          message = "Unauthorized: Please log in to continue.";
+        } else if (response.status === 404) {
+          message = "Not Found: The requested resource could not be found.";
+        } else {
+          message = response.statusText || `Error ${response.status}`;
+        }
+      } else if (typeof payload === "string" && payload.trim() !== "") {
+        message = payload;
+      } else {
+        // Fallback for empty payloads or non-JSON payloads
+        if (response.status === 403) {
+          message = "Forbidden: You do not have permission to perform this action.";
+        } else if (response.status === 401) {
+          message = "Unauthorized: Please log in to continue.";
+        } else {
+          message = response.statusText || `Error ${response.status}`;
+        }
+      }
 
       throw new ApiError(message, response.status, payload);
     }
@@ -195,9 +234,10 @@ class ApiClient {
   }
 
   // Helper method to add authorization header
-  private getAuthHeaders(token: string | null): HeadersInit {
-    const headers: HeadersInit = {
-      "accept": "text/plain",
+  private getAuthHeaders(token: string | null): Record<string, string> {
+    const headers: Record<string, string> = {
+      "accept": "application/json",
+            "content-type": "application/json"
     };
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
@@ -207,14 +247,14 @@ class ApiClient {
 
   // Admin User Methods - Using Next.js API routes to bypass CORS
   async activateUser(userId: string, token: string | null) {
-    return this.request<boolean>(`/api/admin/users/${userId}/activate`, {
+    return this.request<void>(`/api/admin/users/${userId}/activate`, {
       method: "PUT",
       headers: this.getAuthHeaders(token),
     });
   }
 
   async deactivateUser(userId: string, token: string | null) {
-    return this.request<boolean>(`/api/admin/users/${userId}/deactivate`, {
+    return this.request<void>(`/api/admin/users/${userId}/deactivate`, {
       method: "PUT",
       headers: this.getAuthHeaders(token),
     });
@@ -226,23 +266,47 @@ class ApiClient {
     password: string;
     governmentEntityId: string;
   }, token: string | null) {
-    return this.request<{ id: string; fullName: string; email: string; governmentEntityId: string }>(
-      "/api/admin/agency-users/create",
-      {
-        method: "POST",
-        headers: this.getAuthHeaders(token),
-        body,
-      }
-    );
+    return this.request("/api/admin/agency-users/create", {
+      method: "POST",
+      body,
+      headers: {
+        ...this.getAuthHeaders(token),
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   async getAgencyUsers(governmentEntityId: string, token: string | null) {
-    return this.request<Array<{
-      id: string;
-      fullName: string;
-      email: string;
-      governmentEntityId: string;
-    }>>(`/api/admin/agency-users?governmentEntityId=${governmentEntityId}`, {
+    return this.request<any[]>(`/api/admin/agency-users?governmentEntityId=${governmentEntityId}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async getAllAgencyUsers(token: string | null) {
+    return this.request<any[]>("/api/admin/agency-users", {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async getAllUsers(token: string | null, params?: { page?: number; size?: number; searchQuery?: string }) {
+    const query = new URLSearchParams();
+    if (params?.page) query.append("page", params.page.toString());
+    if (params?.size) query.append("size", params.size.toString());
+    if (params?.searchQuery) query.append("searchQuery", params.searchQuery);
+
+    const queryString = query.toString();
+    const url = `/api/users/all${queryString ? `?${queryString}` : ""}`;
+    
+    return this.request<{ data: any[]; count: number }>(url, {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async exportComplaints(token: string | null, period: number) {
+    return this.request<string>(`/api/export/complaints?period=${period}`, {
       method: "GET",
       headers: this.getAuthHeaders(token),
     });
@@ -262,10 +326,10 @@ class ApiClient {
       locationLong?: number;
       locationLat?: number;
       governorate?: number;
-      agencyNotes?: string | null;
-      additionalInfoRequest?: any;
-      attachments?: Array<{ name: string; url: string }>;
-      lockedBy?: any;
+      agencyNotes?: Array<{ note: string; createdAt: string }> | null;
+      additionalInfoRequests?: Array<{ requestMessage: string; createdAt: string }> | null;
+      attachments?: Array<{ fileName: string; fileUrl: string; contentType: string; fileSize: number }>;
+      lockedBy?: string | null;
       rowVersion?: string;
       createdAt?: string;
       updatedAt?: string;
@@ -273,6 +337,20 @@ class ApiClient {
       email?: string;
       timeline?: any[];
     }>(`/api/complaint/${complaintId}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async getComplaintHistory(complaintId: string, token: string | null) {
+    return this.request<any[]>(`/api/complaint/${complaintId}/history`, {
+      method: "GET",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async getComplaintVersions(complaintId: string, token: string | null) {
+    return this.request<any[]>(`/api/complaint/${complaintId}/versions`, {
       method: "GET",
       headers: this.getAuthHeaders(token),
     });
@@ -298,23 +376,42 @@ class ApiClient {
     });
   }
 
+  async addComplaintNote(complaintId: string, note: string, token: string | null) {
+    return this.request<any>(`/api/complaint/${complaintId}/notes`, {
+      method: "POST",
+      headers: this.getAuthHeaders(token),
+      body: { note },
+    });
+  }
+
+  async requestInfo(complaintId: string, requestMessage: string, token: string | null) {
+    return this.request<any>(`/api/complaint/${complaintId}/request-info`, {
+      method: "POST",
+      headers: this.getAuthHeaders(token),
+      body: { requestMessage },
+    });
+  }
+
+  async takeOwnership(complaintId: string, token: string | null) {
+    return this.request<any>(`/api/complaint/take-ownership/${complaintId}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
+  async releaseOwnership(complaintId: string, token: string | null) {
+    return this.request<any>(`/api/complaint/release-ownership/${complaintId}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(token),
+    });
+  }
+
   // Agency Methods - Using Next.js API routes to bypass CORS
   async getAgencies(token: string | null) {
-    // Use the analytics "by-agency" endpoint which returns counts grouped
-    // by government entity. Map the returned objects to the simple
-    // { id, name } shape expected by callers.
-    const payload = await this.request<Array<{
-      governmentEntityId: string;
-      governmentEntityName: string;
-      count: number;
-    }>>("/api/analytics/by-agency", {
+    return this.request<Array<{ id: string; name: string; logoUrl: string | null }>>("/api/agencies", {
       method: "GET",
       headers: this.getAuthHeaders(token),
     });
-
-    if (!Array.isArray(payload)) return [];
-
-    return payload.map((p) => ({ id: p.governmentEntityId, name: p.governmentEntityName }));
   }
 
   /**
@@ -324,6 +421,19 @@ class ApiClient {
     // Use Next.js API route proxy to avoid CORS (server-side will call external API)
     return this.request<Array<{ governorate: number; count: number }>>(
       "/api/analytics/by-governorate",
+      {
+        method: "GET",
+        headers: this.getAuthHeaders(token),
+      }
+    );
+  }
+
+  /**
+   * Get complaints count grouped by status
+   */
+  async getComplaintStatusCounts(token: string | null) {
+    return this.request<Array<{ status: number; count: number }>>(
+      "/api/analytics/status-counts",
       {
         method: "GET",
         headers: this.getAuthHeaders(token),
@@ -345,11 +455,14 @@ class ApiClient {
     );
   }
 
-  async createAgency(body: { name: string }, token: string | null) {
+  async createAgency(formData: FormData, token: string | null) {
     return this.request<{ id: string; name: string }>("/api/admin/agencies", {
       method: "POST",
-      headers: this.getAuthHeaders(token),
-      body,
+      headers: {
+        ...this.getAuthHeaders(token),
+        "accept": "*/*",
+      },
+      body: formData,
     });
   }
 
@@ -360,11 +473,14 @@ class ApiClient {
     });
   }
 
-  async updateAgency(agencyId: string, body: { name: string }, token: string | null) {
+  async updateAgency(agencyId: string, formData: FormData, token: string | null) {
     return this.request<{ id: string; name: string }>(`/api/admin/agencies/${agencyId}`, {
       method: "PUT",
-      headers: this.getAuthHeaders(token),
-      body,
+      headers: {
+        ...this.getAuthHeaders(token),
+        "accept": "*/*",
+      },
+      body: formData,
     });
   }
 
@@ -389,21 +505,23 @@ class ApiClient {
       complaintStatus?: number;
     }
   ) {
-    // Build query string - Using PageNumber and PageSize as expected by the backend
-    const query = new URLSearchParams();
-    if (params?.page) query.append("PageNumber", params.page.toString());
-    if (params?.size) query.append("PageSize", params.size.toString());
-    if (params?.agencyId) query.append("AgencyId", params.agencyId);
+     const query = new URLSearchParams();
+    if (params?.page) query.append("page", params.page.toString());
+    if (params?.size) query.append("size", params.size.toString());
+    if (params?.agencyId) query.append("agencyId", params.agencyId);
     if (
       params?.complaintStatus !== undefined &&
       params.complaintStatus !== null
     ) {
-      query.append("ComplaintStatus", params.complaintStatus.toString());
+      query.append("complaintStatus", params.complaintStatus.toString());
     }
     const url = `/api/complaints${query.toString() ? `?${query}` : ""}`;
     return this.request<ComplaintApiResponse[]>(url, {
       method: "GET",
-      headers: this.getAuthHeaders(token),
+      headers: {
+        ...this.getAuthHeaders(token),
+        "accept": "*/*",
+      },
     });
   }
 }

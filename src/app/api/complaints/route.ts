@@ -4,14 +4,14 @@ import { NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
       const { searchParams } = new URL(request.url);
         const query = searchParams.toString();
-        const endpoint = `/Complaint${query ? `?${query}` : ""}`;
+        const endpoint = `/Complaint/paged${query ? `?${query}` : ""}`;
         
         return ApiHelper.get(
           request,
           endpoint,
           {
             requiresAuth: true, 
-            acceptType: "application/json",
+            acceptType: "*/*",
           }
         );
   }

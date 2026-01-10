@@ -9,12 +9,15 @@
 // *********************
 
 import React from 'react'
+import { useLanguage } from '@/lib/language-context'
 
 const SectionTitle = ({title, path} : {title: string; path: string}) => {
+  const { t, dir } = useLanguage();
+  
   return (
-    <div className='h-[250px] border-b pt-16 border-white bg-blue-500 mb-2 max-sm:h-[200px] max-sm:pt-16'>
-        <h1 className='section-title-title text-7xl text-center mb-7 max-md:text-7xl max-sm:text-5xl text-white max-sm:mb-2'>{ title }</h1>
-        <p className='section-title-path text-xl text-center max-sm:text-xl text-white'>{ path }</p>
+    <div className='h-[250px] border-b pt-16 border-white bg-blue-500 mb-2 max-sm:h-[200px] max-sm:pt-16' dir={dir}>
+        <h1 className='section-title-title text-7xl text-center mb-7 max-md:text-7xl max-sm:text-5xl text-white max-sm:mb-2'>{ t(title) }</h1>
+        <p className='section-title-path text-xl text-center max-sm:text-xl text-white'>{ t(path) }</p>
     </div>
   )
 }

@@ -62,11 +62,12 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
-  governmentEntityId: string;
-  status?: "Active" | "Suspended";
+  isVerified: boolean;
+  phoneNumber: string | null;
+  role: string | null;
+  isActive: boolean;
+  governmentEntityId?: string;
 }
-
- export type Employee = User;
 
 export interface Agency {
   id: string;

@@ -5,6 +5,10 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardNavbar } from "./DashboardNavbar";
+import { getUserRole, isAuthenticated } from "@/lib/auth";
+import { useRouter, usePathname } from "next/navigation";
+import { isPathAllowed } from "@/lib/permissions";
+import { useLanguage } from "@/lib/language-context";
 
 interface DashboardContainerProps {
   children: React.ReactNode;
@@ -15,10 +19,25 @@ export function DashboardContainer({ children }: DashboardContainerProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifications] = useState(5);
+  const router = useRouter();
+  const pathname = usePathname();
+  const { dir } = useLanguage();
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    
+    // Auth check
+    if (!isAuthenticated()) {
+      router.push("/login");
+      return;
+    }
+
+    // Role-based access control
+    const role = getUserRole();
+    if (role !== null && !isPathAllowed(role, pathname)) {
+      router.push("/dashboard");
+    }
+  }, [pathname, router]);
 
   if (!isMounted) {
     return (
@@ -57,7 +76,9 @@ export function DashboardContainer({ children }: DashboardContainerProps) {
       <div
         className={cn(
           "min-h-screen transition-all duration-300 ease-in-out",
-          sidebarOpen ? "md:pl-64" : "md:pl-0"
+          sidebarOpen 
+            ? (dir === 'rtl' ? "md:pr-64 md:pl-0" : "md:pl-64 md:pr-0") 
+            : "md:pl-0 md:pr-0"
         )}
       >
         <DashboardNavbar
@@ -67,7 +88,7 @@ export function DashboardContainer({ children }: DashboardContainerProps) {
           notifications={notifications}
         />
         
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <main className="flex-1 p-3 md:p-4 lg:p-2">
           <div className="mx-auto max-w-7xl">
             {children}
           </div>

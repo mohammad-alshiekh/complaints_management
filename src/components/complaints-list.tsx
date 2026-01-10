@@ -14,37 +14,61 @@ import {
   ComplaintApiResponse,
 } from "@/models/complaint";
 import apiClient from "@/app/lib/api";
-import { getToken } from "@/lib/auth";
+import { getToken, getUserRole, getUser } from "@/lib/auth";
+import { ROLES } from "@/lib/permissions";
 import { ComplaintTableSkeleton } from "./Skeletons";
+import { useTable } from "@/hooks/useTable";
+import { GeneralPagination } from "./GeneralPagination";
+import { 
+  Search, 
+  Filter, 
+  FileText, 
+  Clock, 
+  CheckCircle2, 
+  AlertCircle,
+  MoreVertical,
+  ExternalLink,
+  MapPin,
+  Calendar,
+  Lock,
+  Unlock,
+  Building2,
+  Tag,
+  Download,
+  FileSpreadsheet
+} from "lucide-react";
+ import { Card } from "@/components/ui/card";
+ import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/language-context";
+import toast from "react-hot-toast";
 
-// Constants
-const STATUS_COLORS: Record<ComplaintStatus, string> = {
-  [ComplaintStatus.Pending]: "bg-yellow-50 text-yellow-700 border-yellow-100",
+ const STATUS_COLORS: Record<ComplaintStatus, string> = {
+  [ComplaintStatus.Pending]: "bg-amber-50 text-amber-700 border-amber-100",
   [ComplaintStatus.InProgress]: "bg-blue-50 text-blue-700 border-blue-100",
-  [ComplaintStatus.Completed]: "bg-green-50 text-green-700 border-green-100",
+  [ComplaintStatus.Completed]: "bg-emerald-50 text-emerald-700 border-emerald-100",
   [ComplaintStatus.Rejected]: "bg-rose-50 text-rose-700 border-rose-100",
 };
 
-const STATUS_FILTERS: Array<{ label: string; value: number | "All" }> = [
-  { label: "All", value: "All" },
-  { label: ComplaintStatusLabels[ComplaintStatus.Pending], value: ComplaintStatus.Pending },
-  { label: ComplaintStatusLabels[ComplaintStatus.InProgress], value: ComplaintStatus.InProgress },
-  { label: ComplaintStatusLabels[ComplaintStatus.Completed], value: ComplaintStatus.Completed },
-  { label: ComplaintStatusLabels[ComplaintStatus.Rejected], value: ComplaintStatus.Rejected },
-];
-
-const COMPLAINT_TYPES: Record<number, string> = {
-  0: "Service Quality",
-  1: "Corruption",
-  2: "Delay",
-  3: "Misconduct",
-  99: "Other",
-};
+ 
+ 
+ 
 
 const PAGE_SIZE = 10;
 
-// Utility Functions
-const statusFromNumber = (value: number): ComplaintStatus => {
+ const statusFromNumber = (value: number): ComplaintStatus => {
   switch (value) {
     case 0:
       return ComplaintStatus.Pending;
@@ -93,6 +117,7 @@ const mapComplaintFromApi = (apiComplaint: ComplaintApiResponse): Complaint => (
     const n = Number(raw);
     return Number.isNaN(n) ? undefined : n;
   })(),
+  referenceNumber: apiComplaint.referenceNumber,
   createdAt: apiComplaint.createdAt,
   updatedAt: apiComplaint.createdAt,
   dueAt: apiComplaint.createdAt,
@@ -108,7 +133,7 @@ const mapComplaintFromApi = (apiComplaint: ComplaintApiResponse): Complaint => (
     return String(raw);
   })(),
   summary: apiComplaint.title,
-  description: apiComplaint.title,
+  description: apiComplaint.description || apiComplaint.title,
   tags: [],
   attachments: [],
   timeline: [],
@@ -130,153 +155,155 @@ const formatDate = (value: string) => {
 
 
 
-const ComplaintRow = ({ complaint }: { complaint: Complaint }) => {
-  const limitWords = (text: string, maxWords: number) => {
-    const words = text.split(" ");
-    return words.length > maxWords
-      ? words.slice(0, maxWords).join(" ") + "..."
-      : text;
-  };
+const ComplaintRow = ({ complaint, currentUserId }: { complaint: Complaint; currentUserId?: string }) => {
+  const { t, dir } = useLanguage();
+  
+  const isLocked = complaint.lockedBy && complaint.lockedBy !== "null" && complaint.lockedBy !== "";
+  const isLockedByMe = isLocked && complaint.lockedBy === currentUserId;
+  const canViewDetails = !isLocked || isLockedByMe;
 
-  const formatLocked = (lockedBy?: string) => {
-    if (lockedBy === undefined || lockedBy === null || lockedBy === "" || lockedBy === "null") return "No";
-    return `Yes — ${lockedBy}`;
-  };
-
-  const formatSeverity = (i?: number) => {
-    if (i === undefined || i === null) return "N/A";
-    if (i >= 3) return "Urgent";
-    if (i === 2) return "High";
-    if (i === 1) return "Medium";
-    return "Low";
-  };
-
-  const getSeverityColor = (i?: number) => {
-    if (i === undefined || i === null) return "bg-gray-100 text-gray-600";
-    if (i >= 3) return "bg-rose-50 text-rose-700 border-rose-100";
-    if (i === 2) return "bg-orange-50 text-orange-700 border-orange-100";
-    if (i === 1) return "bg-amber-50 text-amber-700 border-amber-100";
-    return "bg-emerald-50 text-emerald-700 border-emerald-100";
+  const getStatusLabel = (status: ComplaintStatus) => {
+    switch (status) {
+      case ComplaintStatus.Pending: return t('pending');
+      case ComplaintStatus.InProgress: return t('inProgress');
+      case ComplaintStatus.Completed: return t('completed');
+      case ComplaintStatus.Rejected: return t('rejected');
+      default: return ComplaintStatusLabels[status];
+    }
   };
 
   return (
-    <tr className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-      <td className="py-4 pr-4 font-semibold text-gray-800">#{complaint.id.substring(0, 5)}</td>
-      <td className="py-4 pr-4 text-gray-900">{limitWords(complaint.title, 10)}</td>
-      <td className="py-4 pr-4">
-        <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs">
-          {complaint.category}
-        </span>
+    <tr className="hover:bg-slate-50/50 transition-colors group">
+      <td className={`px-6 py-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <div className="flex flex-col">
+          <span className="font-bold text-slate-900 text-sm">
+            {complaint.referenceNumber || `#${complaint.id.substring(0, 8).toUpperCase()}`}
+          </span>
+         </div>
       </td>
-      <td className="py-4 pr-4">
-        <div className="flex flex-col text-sm">
-          <span className="font-semibold text-gray-900">{complaint.studentId}</span>
-          <span className="text-xs text-gray-500">{complaint.studentName}</span>
+      <td className={`px-6 py-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <div className="flex flex-col max-w-[250px]">
+          <span className="font-semibold text-slate-900 line-clamp-1">{complaint.title}</span>
+          <div className="flex items-center gap-1.5 mt-1">
+             <span className="text-xs text-slate-400 line-clamp-1">{complaint.description}</span>
+          </div>
         </div>
       </td>
-
-      <td className="py-4 pr-4">
-        <span className={`inline-flex items-center px-2 py-1 rounded-full border text-xs font-medium ${getSeverityColor(complaint.severity)}`}>
-          {formatSeverity(complaint.severity)}
+      <td className={`px-6 py-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <div className="flex items-center gap-1.5">
+          <MapPin className="w-3 h-3 text-slate-400" />
+          <span className="text-sm text-slate-700">
+            {complaint.governorate !== undefined ? GovernorateNames[complaint.governorate as Governorate] : "N/A"}
+          </span>
+        </div>
+      </td>
+      <td className={`px-6 py-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <div className="flex items-center gap-1.5 text-slate-400">
+          <Calendar className="w-3 h-3" />
+          <span className="text-[11px]">{formatDate(complaint.createdAt)}</span>
+        </div>
+      </td>
+      <td className={`px-6 py-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5   text-xs font-semibold ${STATUS_COLORS[complaint.status]}`}>
+          <span className=" py-0.5 rounded-full bg-current" />
+          {getStatusLabel(complaint.status)}
         </span>
       </td>
-      <td className="py-4 pr-4 text-sm text-gray-600">
-        {complaint.governorate !== undefined ? GovernorateNames[complaint.governorate as Governorate] : "N/A"}
+      <td className="px-6 py-4 text-center">
+        {isLocked ? (
+          <div className="flex flex-col items-center gap-1" title={`${t('lock')} by ${complaint.lockedBy}`}>
+            <Lock className={`w-4 h-4 ${isLockedByMe ? 'text-blue-500' : 'text-amber-500'}`} />
+            <span className={`text-[10px] font-medium truncate max-w-[80px] ${isLockedByMe ? 'text-blue-600' : 'text-amber-600'}`}>
+              {isLockedByMe ? t('lockedByMe') || 'By Me' : complaint.lockedBy}
+            </span>
+          </div>
+        ) : (
+          <Unlock className="w-4 h-4 text-slate-300 mx-auto" />
+        )}
       </td>
-      <td className="py-4 pr-4 text-sm text-gray-500">
-        {formatDate(complaint.createdAt)}
-      </td>
-      <td className="py-4 pr-4">
-        <span
-          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_COLORS[complaint.status]}`}
-        >
-          <span className="h-2 w-2 rounded-full bg-current opacity-80" />
-          {ComplaintStatusLabels[complaint.status]}
-        </span>
-      </td>
-      <td className="py-4 pr-4 text-sm text-gray-600">
-        {formatLocked(complaint.lockedBy)}
-      </td>
-      <td className="py-4 pr-4">
-        <Link
-          href={`/list/complaints/${complaint.id}`}
-          className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-        >
-          View <span aria-hidden>↗</span>
-        </Link>
+      <td className={`px-6 py-4 ${dir === 'rtl' ? 'text-left' : 'text-right'}`}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-100 transition-colors">
+              <MoreVertical className="h-4 w-4 text-slate-500" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align={dir === 'rtl' ? 'start' : 'end'} className="w-40 rounded-xl shadow-xl border-slate-100 p-1">
+            {canViewDetails && (
+              <Link href={`/list/complaints/${complaint.id}`}>
+                <DropdownMenuItem className="rounded-lg cursor-pointer flex items-center gap-2 py-2">
+                  <ExternalLink className={`w-4 h-4 text-blue-500 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                  <span className="font-medium">{t('viewDetails')}</span>
+                </DropdownMenuItem>
+              </Link>
+            )}
+            {!canViewDetails && isLocked && (
+              <div className="px-3 py-2 text-xs text-slate-400 italic">
+                {t('locked') || 'Locked'}
+              </div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </td>
     </tr>
   );
 };
 
-const PaginationControls = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}) => {
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-  return (
-    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-      <div className="text-sm text-gray-600">
-        Page {currentPage} of {totalPages}
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="px-3 py-1 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Previous
-        </button>
-        {pages.map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${page === currentPage
-              ? "bg-gray-900 text-white border-gray-900"
-              : "border-gray-200 text-gray-700 hover:bg-gray-50"
-              }`}
-          >
-            {page}
-          </button>
-        ))}
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// Main Component
-
-
-
 export const ComplaintsList = () => {
-  // 1. State Management
-  const [search, setSearch] = useState("");
+  const { t, dir } = useLanguage();
+  const user = getUser();
+  const currentUserId = user?.userId;
+  const userRole = getUserRole();
+  const isEmployee = userRole === ROLES.EMPLOYEE;
+  
   const [statusFilter, setStatusFilter] = useState<number | "All">("All");
   const [agencyFilter, setAgencyFilter] = useState<string | "All">("All");
   const [agencies, setAgencies] = useState<Array<{ id: string; name: string }>>([]);
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const exportPeriods = [
+    { label: t('day') || 'Day', value: 0 },
+    { label: t('week') || 'Week', value: 1 },
+    { label: t('month') || 'Month', value: 2 },
+    { label: t('year') || 'Year', value: 3 },
+  ];
 
-  // 2. Fetch Agencies (Once on mount)
+  const handleExport = async (period: number) => {
+    setIsExporting(true);
+    try {
+      const token = getToken();
+      const downloadPath = await apiClient.exportComplaints(token, period);
+      
+      if (downloadPath) {
+        // Construct the full URL using the backend domain
+        const backendDomain = "https://complaint.runasp.net";
+        const fullUrl = downloadPath.startsWith('http') 
+          ? downloadPath 
+          : `${backendDomain}${downloadPath.startsWith('/') ? '' : '/'}${downloadPath}`;
+        
+        console.log("Opening export URL:", fullUrl);
+        
+        // Open in new tab
+        window.open(fullUrl, '_blank');
+        toast.success(t('exportSuccess') || 'Export started successfully');
+      }
+    } catch (error: any) {
+      console.error("Export failed", error);
+      toast.error(error.message || t('exportFailed') || 'Failed to export complaints');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const STATUS_FILTERS_LOCAL = [
+    { label: t('all'), value: "All" },
+    { label: t('pending'), value: ComplaintStatus.Pending },
+    { label: t('inProgress'), value: ComplaintStatus.InProgress },
+    { label: t('completed'), value: ComplaintStatus.Completed },
+    { label: t('rejected'), value: ComplaintStatus.Rejected },
+  ];
+
   useEffect(() => {
     const fetchAgencies = async () => {
       try {
@@ -288,119 +315,203 @@ export const ComplaintsList = () => {
     fetchAgencies();
   }, []);
 
-  // 3. Optimized Fetch Function
-  const loadData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const token = getToken();
+  const fetcher = useCallback(async ({ page, size, search }: { page: number; size: number; search: string }) => {
+    const token = getToken();
+    const params: any = {
+      page,
+      size,
+    };
 
-      const params: any = {
-        page: currentPage,
-        size: PAGE_SIZE,
-      };
+    if (agencyFilter !== "All") params.agencyId = agencyFilter;
+    if (statusFilter !== "All") params.complaintStatus = statusFilter;
+    if (search.trim()) params.searchTerm = search;
 
-      if (agencyFilter !== "All") params.agencyId = agencyFilter;
-      if (statusFilter !== "All") params.complaintStatus = statusFilter;
+    const response = (await apiClient.getComplaints(token, params)) as any;
 
-      // SERVER-SIDE SEARCH: Pass search to API so it searches the whole DB
-      if (search.trim()) params.searchTerm = search;
+    const rawItems = response.items || [];
+    const total = response.totalCount || 0;
+    const totalPages = response.totalPages || Math.ceil(total / size) || 1;
 
-      const response = (await apiClient.getComplaints(token, params)) as any;
-
-      // Robust parsing for different API response structures
-      let rawItems: any[] = [];
-      let total = 0;
-
-      if (Array.isArray(response)) {
-        rawItems = response;
-        total = response.length;
-      } else if (response && typeof response === "object") {
-        // Check for data/items array
-        rawItems = response.data || response.items || [];
-        // Check for totalCount/TotalCount/total
-        total =
-          response.totalCount ||
-          response.TotalCount ||
-          response.total ||
-          rawItems.length;
-      }
-
-      setComplaints(rawItems.map(mapComplaintFromApi));
-      setTotalCount(total);
-      setTotalPages(Math.ceil(total / PAGE_SIZE) || 1);
-    } catch (err: any) {
-      setError(err?.message || "Failed to fetch data");
-    } finally {
-      setIsLoading(false);
+    const mapped = rawItems.map(mapComplaintFromApi);
+    
+    if (page === 1 && !search && statusFilter === "All" && agencyFilter === "All") {
+        setAllComplaints(mapped);
     }
-  }, [currentPage, agencyFilter, statusFilter, search]);
 
-  // 4. Trigger reload when filters or page change
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+    return {
+      data: mapped,
+      totalCount: total,
+      totalPages: totalPages,
+    };
+  }, [agencyFilter, statusFilter]);
 
-  // 5. Reset to Page 1 when filters change
-  const handleFilterChange = (type: 'status' | 'agency' | 'search', value: any) => {
+  const {
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    setCurrentPage,
+    paginatedData: complaints,
+    totalPages,
+    totalItems,
+    isLoading,
+    itemsPerPage,
+  } = useTable({
+    fetcher,
+    itemsPerPage: PAGE_SIZE,
+  });
+
+  const stats = useMemo(() => {
+    return {
+      total: totalItems,
+      pending: allComplaints.filter(c => c.status === ComplaintStatus.Pending).length,
+      inProgress: allComplaints.filter(c => c.status === ComplaintStatus.InProgress).length,
+      completed: allComplaints.filter(c => c.status === ComplaintStatus.Completed).length
+    };
+  }, [totalItems, allComplaints]);
+
+  const handleFilterChange = (type: 'status' | 'agency'  , value: any) => {
     if (type === 'status') setStatusFilter(value);
     if (type === 'agency') setAgencyFilter(value);
-    if (type === 'search') setSearch(value);
-    setCurrentPage(1); // Crucial: Reset pagination on new filter
+     setCurrentPage(1);
   };
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-4 md:p-6 shadow-sm">
-      {/* Search & Filter Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Complaints</h1>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <input
-            type="search"
-            placeholder="Search..."
-            className="w-full md:w-64 rounded-xl border border-gray-200 px-3 py-2 text-sm"
-            onChange={(e) => handleFilterChange('search', e.target.value)}
-          />
-          {/* ... select inputs using handleFilterChange ... */}
+    <div className="space-y-8" dir={dir}>
+      {/* Stats Cards */}
+     
+     
+      <div className="space-y-6">
+        <div className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">{t('complaintsManagement')}</h3>
+           </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Select
+              value={statusFilter.toString()}
+              onValueChange={(value) => handleFilterChange('status', value === "All" ? "All" : Number(value))}
+            >
+              <SelectTrigger className="w-[160px] h-11 rounded-xl bg-white border-slate-200 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-slate-400" />
+                  <SelectValue placeholder={t('status')} />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                {STATUS_FILTERS_LOCAL.map((f) => (
+                  <SelectItem key={f.label} value={f.value.toString()}>
+                    {f.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {!isEmployee && (
+              <Select
+                value={agencyFilter}
+                onValueChange={(value) => handleFilterChange('agency', value)}
+              >
+                <SelectTrigger className="w-[200px] h-11 rounded-xl bg-white border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-slate-400" />
+                    <SelectValue placeholder={t('allAgencies')} />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="All">{t('allAgencies')}</SelectItem>
+                  {agencies.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="h-11 rounded-xl bg-white border-slate-200 shadow-sm gap-2 px-4 hover:bg-slate-50"
+                  disabled={isExporting}
+                >
+                  {isExporting ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
+                  ) : (
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  )}
+                  <span className="font-medium text-slate-700">{t('export')}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align={dir === 'rtl' ? 'start' : 'end'} className="w-48 rounded-xl shadow-xl border-slate-100 p-1">
+                <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {t('exportPeriod') || 'Select Period'}
+                </div>
+                {exportPeriods.map((period) => (
+                  <DropdownMenuItem
+                    key={period.value}
+                    className="rounded-lg cursor-pointer flex items-center gap-2 py-2"
+                    onClick={() => handleExport(period.value)}
+                  >
+                    <Download className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{period.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-      </div>
 
-      {/* Table & Pagination UI (Same as your code but using setComplaints directly) */}
-      <div className="overflow-x-auto">
-        {isLoading ? <ComplaintTableSkeleton /> : (
-          <table className="min-w-full text-sm">
-            <thead className="border-b border-gray-100 text-gray-400 text-left">
-              <tr>
-                <th className="pb-4 font-semibold">ID</th>
-                <th className="pb-4 font-semibold">Title</th>
-                <th className="pb-4 font-semibold">Category</th>
-                <th className="pb-4 font-semibold">Student</th>
-                <th className="pb-4 font-semibold">Severity</th>
-                <th className="pb-4 font-semibold">Governorate</th>
-                <th className="pb-4 font-semibold">Date</th>
-                <th className="pb-4 font-semibold">Status</th>
-                <th className="pb-4 font-semibold">Locked By</th>
-                <th className="pb-4 font-semibold">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {complaints.length === 0 ? (
-                <tr><td colSpan={10} className="text-center py-12">No items found</td></tr>
-              ) : (
-                complaints.map((c) => <ComplaintRow key={c.id} complaint={c} />)
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+        <Card className="rounded-2xl border-none shadow-md overflow-hidden bg-white">
+          <div className="overflow-x-auto">
+            {isLoading ? (
+              <ComplaintTableSkeleton />
+            ) : (
+              <table className="w-full text-sm" dir={dir}>
+                <thead className="border-b bg-slate-50/50">
+                  <tr>
+                    <th className={`px-6 py-4 font-semibold text-slate-700 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>{t('referenceNumber') || 'Reference #'}</th>
+                    <th className={`px-6 py-4 font-semibold text-slate-700 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>{t('details')}</th>
+                    <th className={`px-6 py-4 font-semibold text-slate-700 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>{t('location')}</th>
+                    <th className={`px-6 py-4 font-semibold text-slate-700 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>{t('date')}</th>
+                    <th className={`px-6 py-4 font-semibold text-slate-700 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>{t('status')}</th>
+                    <th className="px-6 py-4 font-semibold text-slate-700 text-center">{t('lock')}</th>
+                    <th className={`px-6 py-4 font-semibold text-slate-700 ${dir === 'rtl' ? 'text-left' : 'text-right'}`}>{t('actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {complaints.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-20">
+                        <div className="flex flex-col items-center gap-2">
+                          <FileText className="w-10 h-10 text-slate-200" />
+                          <p className="text-slate-500 font-medium">{t('noComplaintsFound')}</p>
+                          <p className="text-xs text-slate-400">{t('adjustFilters')}</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    complaints.map((c) => <ComplaintRow key={c.id} complaint={c} currentUserId={currentUserId} />)
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
 
-      {totalPages > 1 && (
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      )}
-    </section>
+          {!isLoading && complaints.length > 0 && (
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+              <GeneralPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                label="complaints"
+              />
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
   );
 };

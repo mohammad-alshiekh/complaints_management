@@ -22,7 +22,7 @@ export const ComplaintStatusLabels: Record<ComplaintStatus, string> = {
 
 export enum UserRole {
   Admin = 0,
-  Employee = 1,
+  User = 1,
 }
 
 export enum Governorate {

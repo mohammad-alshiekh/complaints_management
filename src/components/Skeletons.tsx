@@ -21,6 +21,47 @@ export const TableSkeleton = () => (
   </div>
 );
 
+export const ChartSkeleton = () => (
+  <div className="w-full h-80 animate-pulse bg-gray-50/50 rounded-2xl flex flex-col p-6 space-y-4">
+    <div className="flex justify-between items-end h-full w-full gap-4">
+      <div className="w-full h-[40%] bg-gray-100 rounded-t-lg" />
+      <div className="w-full h-[70%] bg-gray-200 rounded-t-lg" />
+      <div className="w-full h-[55%] bg-gray-100 rounded-t-lg" />
+      <div className="w-full h-[85%] bg-gray-200 rounded-t-lg" />
+      <div className="w-full h-[45%] bg-gray-100 rounded-t-lg" />
+      <div className="w-full h-[65%] bg-gray-200 rounded-t-lg" />
+      <div className="w-full h-[50%] bg-gray-100 rounded-t-lg" />
+    </div>
+    <div className="h-4 w-full bg-gray-100 rounded" />
+  </div>
+);
+
+export const PieChartSkeleton = () => (
+  <div className="w-full h-80 animate-pulse bg-gray-50/50 rounded-2xl flex flex-col items-center justify-center p-6 space-y-6">
+    <div className="relative w-48 h-48 rounded-full border-[16px] border-gray-100 flex items-center justify-center">
+      <div className="absolute inset-0 rounded-full border-[16px] border-gray-200 border-t-transparent border-r-transparent rotate-45" />
+    </div>
+    <div className="grid grid-cols-2 gap-4 w-full px-4">
+      <div className="flex items-center gap-2">
+        <div className="w-3 h-3 rounded-full bg-gray-200" />
+        <div className="w-20 h-3 bg-gray-100 rounded" />
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-3 h-3 rounded-full bg-gray-100" />
+        <div className="w-20 h-3 bg-gray-100 rounded" />
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-3 h-3 rounded-full bg-gray-200" />
+        <div className="w-20 h-3 bg-gray-100 rounded" />
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-3 h-3 rounded-full bg-gray-100" />
+        <div className="w-20 h-3 bg-gray-100 rounded" />
+      </div>
+    </div>
+  </div>
+);
+
 export const AgencySkeleton = () => (
   <div className="space-y-2 animate-pulse">
     {[...Array(4)].map((_, i) => (

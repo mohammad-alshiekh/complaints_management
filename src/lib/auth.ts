@@ -1,4 +1,4 @@
-import { LoginResponse, User, Credentials } from "@/models/auth";
+import { LoginResponse,  Credentials, UserSession } from "@/models/auth";
 
 export const setUserRole = (role: number): void => {
   if (typeof window === "undefined") return;
@@ -29,11 +29,11 @@ export const removeToken = (): void => {
   if (typeof window === "undefined") return;
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  localStorage.removeItem("userRole"); // 👈
+  localStorage.removeItem("userRole");
 
 };
 
-export const getUser = (): { userId: string; email: string } | null => {
+export const getUser = (): UserSession | null => {
   if (typeof window === "undefined") return null;
   const userStr = localStorage.getItem("user");
   if (!userStr) return null;
@@ -44,7 +44,7 @@ export const getUser = (): { userId: string; email: string } | null => {
   }
 };
 
-export const setUser = (user: { userId: string; email: string }): void => {
+export const setUser = (user: UserSession): void => {
   if (typeof window === "undefined") return;
   localStorage.setItem("user", JSON.stringify(user));
 };

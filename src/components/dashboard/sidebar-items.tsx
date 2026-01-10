@@ -34,52 +34,39 @@ export interface SidebarItem {
 
 export const sidebarItems: SidebarItem[] = [
   {
-    title: "Dashboard",
+    title: "home",
     icon: <LayoutDashboard className="h-5 w-5" />,
-    url: "/admin",
+    url: "/dashboard",
     isActive: true,
   },
+   
+   
   {
-    title: "Analytics",
-    icon: <BarChart3 className="h-5 w-5" />,
-    url: "/analytics",
-  },
-  {
-    title: "Workflows",
-    icon: <Layers className="h-5 w-5" />,
-    url: "/over",
-  },
-  {
-    title: "Management",
+    title: "complaints",
     icon: <Grid className="h-5 w-5" />,
-    items: [
-      { title: "Complaints", url: "/list/complaints" },
-      { title: "Employees", url: "/list/employees" },
-      { title: "Users", url: "/list/users" },
-    ],
+    url: "/list/complaints" 
+    
+  },
+   {
+    title: "citizens",
+    icon: <Layers className="h-5 w-5" />,
+    url: "/list/users",
   },
   {
-    title: "Communication",
-    icon: <Megaphone className="h-5 w-5" />,
-    items: [
-      { title: "Announcements", url: "/list/announcements" },
-      { title: "Events", url: "/list/events" },
-    ],
+    title: "employees",
+    icon: <Users className="h-5 w-5" />,
+    url: "/list/employee",
   },
   {
-    title: "Organization",
+    title: "agencies",
+    icon: <Bookmark className="h-5 w-5" />,
+    url: "/list/agencies",
+  },
+   
+  {
+    title: "profile",
     icon: <Users2 className="h-5 w-5" />,
-    items: [
-      { title: "Team", url: "/team" },
-      { title: "Profile", url: "/profile" },
-    ],
-  },
-  {
-    title: "System",
-    icon: <Settings className="h-5 w-5" />,
-    items: [
-      { title: "Settings", url: "/settings" },
-      { title: "Logout", url: "/logout" },
-    ],
-  },
+     url: "/profile"
+    
+  } 
 ];

@@ -6,12 +6,12 @@ import { getToken, getUserRole } from "@/lib/auth";
 
 interface RouteGuardProps {
   children: React.ReactNode;
-  allowedRoles?: ("admin" | "employee")[];
+  allowedRoles?: ("admin" | "user")[];
   redirectTo?: string;
 }
 
 export default function RouteGuard({
-  children,
+  children, 
   allowedRoles,
   redirectTo = "/dashboard",
 }: RouteGuardProps) {
@@ -31,7 +31,7 @@ export default function RouteGuard({
         return;
       }
 
-      const roleName = userRole === 0 ? "admin" : userRole === 1 ? "employee" : null;
+      const roleName = userRole === 0 ? "admin" : userRole === 1 ? "user" : null;
 
       // If route has specific role requirements
       if (allowedRoles && allowedRoles.length > 0) {

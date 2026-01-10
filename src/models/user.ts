@@ -3,10 +3,16 @@ export interface User {
   fullName: string;
   email: string;
   governmentEntityId: string;
-  status?: "Active" | "Suspended";
+  role?: string;
+  department?: string;
+  phoneNumber?: string;
+  status?: "Active" | "Suspended" | "Inactive";
+  createdAt?: string;
 }
 
 export interface Agency {
   id: string;
   name: string;
+  code?: string;
+  address?: string;
 }
