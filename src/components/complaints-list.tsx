@@ -387,6 +387,17 @@ export const ComplaintsList = () => {
            </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <div className="relative group">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+              <input
+                type="text"
+                placeholder={t('search') || "Search complaints..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-11 pl-10 pr-4 rounded-xl bg-white border border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 transition-all w-[240px] text-sm font-medium placeholder:text-slate-400"
+              />
+            </div>
+
             <Select
               value={statusFilter.toString()}
               onValueChange={(value) => handleFilterChange('status', value === "All" ? "All" : Number(value))}

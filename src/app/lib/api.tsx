@@ -503,12 +503,14 @@ class ApiClient {
       size?: number;
       agencyId?: string;
       complaintStatus?: number;
+      searchTerm?: string;
     }
   ) {
      const query = new URLSearchParams();
     if (params?.page) query.append("page", params.page.toString());
     if (params?.size) query.append("size", params.size.toString());
     if (params?.agencyId) query.append("agencyId", params.agencyId);
+    if (params?.searchTerm) query.append("searchQuery", params.searchTerm);
     if (
       params?.complaintStatus !== undefined &&
       params.complaintStatus !== null
