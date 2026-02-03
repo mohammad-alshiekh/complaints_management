@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+  import { NextRequest, NextResponse } from "next/server";
  
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -92,7 +92,7 @@ export class ApiHelper {
   /**
    * Handle error responses
    */
-  private static handleErrorResponse(
+  public static handleErrorResponse(
     response: Response,
     data: any,
     errorContext: string
