@@ -3,28 +3,18 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Search,
-  Plus,
-  MoreHorizontal,
+ 
   Mail,
-  Shield,
-  User as UserIcon,
-  Trash2,
-  CheckCircle2,
+   User as UserIcon,
+   CheckCircle2,
   XCircle,
-  Loader2,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
+ 
   MoreVertical,
-  UserPlus,
-  Users as UsersIcon,
+   Users as UsersIcon,
   ShieldCheck,
   ShieldAlert,
   Smartphone,
-  Check,
-  X,
-  ArrowUpDown,
-  AlertCircle
+  Check 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

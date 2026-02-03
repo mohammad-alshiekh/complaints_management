@@ -10,7 +10,8 @@ import {
     ComplaintStatus, 
     ComplaintType, 
     ComplaintStatusLabels,
-    GovernorateNames
+    GovernorateNames,
+    Governorate
 } from "@/enums";
 import { 
     Send,
@@ -210,9 +211,12 @@ function VersionsModal({ versions, isLoading, onClose }: { versions: ComplaintVe
     );
 }
 
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Card({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: (e: React.MouseEvent) => void }) {
     return (
-        <div className={`bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden ${className}`}>
+        <div 
+            className={`bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden ${className}`}
+            onClick={onClick}
+        >
             {children}
         </div>
     );
@@ -355,7 +359,7 @@ function Overview({ complaint }: { complaint: Complaint }) {
         { label: "Current Status", value: status, icon: CheckCircle2, style: STATUS_STYLES[status] },
         { label: "Priority Level", value: priority, icon: AlertCircle, style: PRIORITY_STYLES[priority] },
         { label: "Category", value: mapType(complaint.type as ComplaintType), icon: Briefcase, style: "bg-slate-50 text-slate-700 border-slate-200" },
-        { label: "Location", value: GovernorateNames[complaint.governorate] || "Not Specified", icon: MapPin, style: "bg-slate-50 text-slate-700 border-slate-200" },
+        { label: "Location", value: complaint.governorate !== undefined ? (GovernorateNames[complaint.governorate as Governorate] || "Not Specified") : "Not Specified", icon: MapPin, style: "bg-slate-50 text-slate-700 border-slate-200" },
     ];
 
     return (
@@ -648,7 +652,7 @@ export default function ComplaintDetailsPage({ params }: Props) {
                 const data = await apiClient.getComplaint(params.id, token);
                 if (!mounted) return;
                 if (data) {
-                    setComplaint(data);
+                    setComplaint(data as any);
                     setCurrentStatus((data.status ?? ComplaintStatus.Pending) as ComplaintStatus);
                 }
             } catch (err) {
