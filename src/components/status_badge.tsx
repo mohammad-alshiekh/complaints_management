@@ -14,9 +14,9 @@ const statusArabic = {
   Rejected: "مرفوضة",
 };
 
-export default function StatusBadge({ status }) {
-  const style = statusStyles[status] || "bg-gray-400 text-white";
-  const label = statusArabic[status] || "غير معروف";
+export default function StatusBadge({ status }: { status: string }) {
+  const style = statusStyles[status as keyof typeof statusStyles] || "bg-gray-400 text-white";
+  const label = statusArabic[status as keyof typeof statusArabic] || "غير معروف";
 
   return (
     <span className={`px-3 py-1 rounded-full text-sm font-medium ${style}`}>

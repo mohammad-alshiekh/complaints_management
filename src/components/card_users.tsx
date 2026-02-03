@@ -1,12 +1,20 @@
 import { Card, CardContent } from "@/components/ui/card";
 
+interface StatsCardProps {
+  label: string;
+  value: string | number;
+  icon: any;
+  iconBg?: string;
+  iconColor?: string;
+}
+
 const StatsCard = ({
   label,
   value,
   icon: Icon,
   iconBg = "from-indigo-500/20 to-indigo-500/5",
   iconColor = "text-indigo-600",
-}) => {
+}: StatsCardProps) => {
   return (
     <Card className="relative overflow-hidden bg-white/90 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
       
