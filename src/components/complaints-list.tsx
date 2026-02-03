@@ -355,7 +355,7 @@ export const ComplaintsList = () => {
     totalItems,
     isLoading,
     itemsPerPage,
-  } = useTable({
+  } = useTable<Complaint>({
     fetcher,
     itemsPerPage: PAGE_SIZE,
   });
